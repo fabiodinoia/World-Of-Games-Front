@@ -1,104 +1,88 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, map, Observable, switchMap } from 'rxjs';
-import { Game, Token } from 'src/app/types/types';
-import { RepoUserService } from '../user/user.service';
+import { BehaviorSubject, catchError, map, Observable, throwError } from 'rxjs';
+import { Game } from 'src/app/types/types';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class RepoGameService {
-  private apiUrl = 'https://wog-backend.onrender.com/games/';
-  public _games$: BehaviorSubject<Game[]>;
-  token: Token;
-  gameInfo$: BehaviorSubject<Game>;
+  private readonly apiUrl = `${environment.apiUrl}/games/`;
+  private readonly _games$ = new BehaviorSubject<Game[]>([]);
+  readonly gameInfo$ = new BehaviorSubject<Game>({} as Game);
 
-  constructor(public http: HttpClient, public srv: RepoUserService) {
-    const initialGames: Game[] = [];
-    this._games$ = new BehaviorSubject(initialGames);
-    this.token = { results: { token: '' } };
-    this.gameInfo$ = new BehaviorSubject({} as Game);
-  }
+  constructor(private readonly http: HttpClient) {}
 
-  public get games$(): Observable<Game[]> {
+  get games$(): Observable<Game[]> {
     return this._games$.asObservable();
   }
 
-  createGame(game: Game): Observable<any> {
-    return this.srv.token$.pipe(
-      switchMap((token) => {
-        const headers = { Authorization: `Bearer ${token}` };
-        return this.http.post(this.apiUrl, game, {
-          headers,
-        });
+  createGame(game: Game): Observable<Game> {
+    return this.http.post<Game>(this.apiUrl, game).pipe(
+      catchError((error) => {
+        console.error('Failed to create game:', error);
+        return throwError(() => error);
       })
     );
   }
 
-  loadGame(id: string): Observable<any> {
-    return this.http.get(this.apiUrl + id);
-  }
-
-  public loadAllGame(): Observable<Game[]> {
-    return this.srv.token$.pipe(
-      switchMap((token) => {
-        const headers = { Authorization: `Bearer ${token}` }; // Add the token to headers
-        return this.http
-          .get<{ results: Array<Game[]> }>(this.apiUrl, {
-            headers: headers,
-          })
-          .pipe(
-            map((t) => {
-              this._games$.next(t.results[0]);
-              return t.results[0];
-            })
-          );
+  loadGame(id: string): Observable<Game> {
+    return this.http.get<Game>(this.apiUrl + id).pipe(
+      catchError((error) => {
+        console.error('Failed to load game:', error);
+        return throwError(() => error);
       })
     );
   }
 
-  queryGame(category: string): Observable<any> {
-    let allGames: any;
-    return this.srv.token$.pipe(
-      switchMap((token) => {
-        const headers = { Authorization: `Bearer ${token}` }; // Add the token to headers
-        if (category === 'all' || category === '') {
-          allGames = this.http.get<{ results: Array<Game[]> }>(this.apiUrl, {
-            headers: headers,
-          });
-        } else {
-          allGames = this.http.get<{ results: Array<Game[]> }>(
-            this.apiUrl + `filter/${category}`,
-            { headers: headers }
-          );
-        }
-        return allGames.pipe(
-          map((t: any) => {
-            this._games$.next(t.results[0]);
-            return t.results[0];
-          })
-        );
+  loadAllGames(): Observable<Game[]> {
+    return this.http
+      .get<{ results: Game[][] }>(this.apiUrl)
+      .pipe(
+        map((response) => {
+          this._games$.next(response.results[0]);
+          return response.results[0];
+        }),
+        catchError((error) => {
+          console.error('Failed to load games:', error);
+          return throwError(() => error);
+        })
+      );
+  }
+
+  queryGame(category: string): Observable<Game[]> {
+    const url =
+      category === 'all' || category === ''
+        ? this.apiUrl
+        : `${this.apiUrl}filter/${category}`;
+
+    return this.http.get<{ results: Game[][] }>(url).pipe(
+      map((response) => {
+        this._games$.next(response.results[0]);
+        return response.results[0];
+      }),
+      catchError((error) => {
+        console.error('Failed to query games:', error);
+        return throwError(() => error);
       })
     );
   }
-  updateGame(id: string, game: Game): Observable<any> {
-    return this.srv.token$.pipe(
-      switchMap((token) => {
-        const headers = { Authorization: `Bearer ${token}` }; // Add the token to headers
-        const updateGame = game;
-        return this.http.put(this.apiUrl + id, updateGame, {
-          headers: headers,
-        });
+
+  updateGame(id: string, game: Game): Observable<Game> {
+    return this.http.put<Game>(this.apiUrl + id, game).pipe(
+      catchError((error) => {
+        console.error('Failed to update game:', error);
+        return throwError(() => error);
       })
     );
   }
-  deleteGame(id: string): Observable<any> {
-    return this.srv.token$.pipe(
-      switchMap((token) => {
-        const headers = { Authorization: `Bearer ${token}` }; // Add the token to headers
-        return this.http.delete(this.apiUrl + id, {
-          headers: headers,
-        });
+
+  deleteGame(id: string): Observable<void> {
+    return this.http.delete<void>(this.apiUrl + id).pipe(
+      catchError((error) => {
+        console.error('Failed to delete game:', error);
+        return throwError(() => error);
       })
     );
   }

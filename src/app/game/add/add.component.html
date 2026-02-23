@@ -1,38 +1,80 @@
-<img class="background" alt="home-background" class="image" src="./../../../assets/backgroun2.jpg">
+<section class="game-form">
+  <div class="game-form__panel panel">
+    <h1>{{ isUpdate ? 'Edit game' : 'Add a new game' }}</h1>
+    <p class="game-form__subtitle">{{ isUpdate ? 'Update the game details below.' : 'Fill in the details to publish a new game.' }}</p>
 
-<form class="register-form" [formGroup]="newGame" (ngSubmit)="handleSubmit()">
-  <div class="form-group">
-    <label for="name">Game name:</label>
-    <input type="text" formControlName="gameName">
+    <form [formGroup]="newGame" (ngSubmit)="handleSubmit()">
+      <div class="form-field">
+        <label class="form-field__label" for="gameName">Game name</label>
+        <input class="form-field__input" type="text" id="gameName"
+               formControlName="gameName" placeholder="Enter game name" />
+        <span class="form-field__error"
+              *ngIf="newGame.get('gameName')?.invalid && newGame.get('gameName')?.touched">
+          Game name is required.
+        </span>
+      </div>
+
+      <div class="form-field">
+        <label class="form-field__label" for="releaseDate">Release date</label>
+        <input class="form-field__input" type="text" id="releaseDate"
+               formControlName="releaseDate" placeholder="e.g. 2024-03-15" />
+        <span class="form-field__error"
+              *ngIf="newGame.get('releaseDate')?.invalid && newGame.get('releaseDate')?.touched">
+          Release date is required.
+        </span>
+      </div>
+
+      <div class="form-field">
+        <label class="form-field__label" for="category">Category</label>
+        <select class="form-field__input" id="category" formControlName="category">
+          <option value="" disabled>Select a category</option>
+          <option value="MOBA">MOBA</option>
+          <option value="RPG">RPG</option>
+          <option value="MMO">MMO</option>
+          <option value="FPS">FPS</option>
+          <option value="Action">Action</option>
+        </select>
+        <span class="form-field__error"
+              *ngIf="newGame.get('category')?.invalid && newGame.get('category')?.touched">
+          Please select a category.
+        </span>
+      </div>
+
+      <div class="form-field">
+        <label class="form-field__label" for="price">Price</label>
+        <input class="form-field__input" type="number" id="price"
+               formControlName="price" placeholder="0.00" min="0" step="0.01" />
+        <span class="form-field__error"
+              *ngIf="newGame.get('price')?.invalid && newGame.get('price')?.touched">
+          Price must be at least 1.00.
+        </span>
+      </div>
+
+      <div class="form-field">
+        <label class="form-field__label" for="img">Cover image</label>
+        <input class="form-field__input" type="file" id="img" accept="image/*"
+               (change)="saveImage($event)" />
+      </div>
+
+      <div class="form-field">
+        <label class="form-field__label" for="description">Description</label>
+        <textarea class="form-field__input" id="description"
+                  formControlName="description" rows="4"
+                  placeholder="Describe the game..."></textarea>
+      </div>
+
+      <button class="btn btn--primary game-form__submit" type="submit"
+              [disabled]="newGame.invalid || isSubmitting">
+        <span *ngIf="!isSubmitting">{{ isUpdate ? 'Save changes' : 'Create game' }}</span>
+        <span *ngIf="isSubmitting">{{ isUpdate ? 'Saving...' : 'Creating...' }}</span>
+      </button>
+
+      <p class="game-form__status game-form__status--success" *ngIf="isSuccess">
+        {{ isUpdate ? 'Game updated!' : 'Game created!' }}
+      </p>
+      <p class="game-form__status game-form__status--error" *ngIf="isError">
+        {{ isUpdate ? 'Update failed. Please try again.' : 'Creation failed. Please try again.' }}
+      </p>
+    </form>
   </div>
-  <div class="form-group">
-    <label for="Release date">Release date:</label>
-    <input type="text" formControlName="releaseDate">
-  </div>
-  <div class="form-group">
-    <label for="category">Category:</label>
-    <select formControlName="category">
-      <option value="MOBA">MOBA</option>
-      <option value="RPG">RPG</option>
-      <option value="MMO">MMO</option>
-      <option value="FPS">FPS</option>
-      <option value="Action">Action</option>
-    </select>
-  </div>
-  <div class="form-group">
-    <label for="price">Price:</label>
-    <input type="number" formControlName="price">
-  </div>
-  <div class="form-group">
-    <label for="img">Upload image</label>
-    <input type="file" formControlName="img" (change)="saveImage($event)">
-  </div>
-  <div class="form-group">
-    <label for="Description">Description:</label>
-    <input type="text" formControlName="description">
-  </div>
-  <button type="submit" *ngIf="!isUpdate">Create</button>
-  <button type="submit" *ngIf="isUpdate">Save</button>
-  <p *ngIf="isSuccess">You have successfully {{isUpdate ? 'updated' : 'created'}} the game!</p>
-  <div class="error" *ngIf="isError">{{isUpdate ? 'Error during game update' : 'Error during game creation'}}</div>
-</form>
+</section>

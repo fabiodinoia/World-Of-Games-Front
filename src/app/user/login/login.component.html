@@ -1,15 +1,41 @@
-<img class="background" alt="home-background" class="image" src="./../../../assets/backgroun2.jpg">
-<h1>Login</h1>
-<form [formGroup]="login" (ngSubmit)="handleSubmit()">
-  <div class="form-group">
-    <label for="email">Email:</label>
-    <input type="email" id="email" formControlName="email" required />
+<section class="auth">
+  <div class="auth__panel panel">
+    <h1>Welcome back</h1>
+    <p class="auth__subtitle">Sign in to your account</p>
+
+    <form [formGroup]="login" (ngSubmit)="handleSubmit()">
+      <div class="form-field">
+        <label class="form-field__label" for="email">Email</label>
+        <input class="form-field__input" type="email" id="email"
+               formControlName="email" placeholder="you@example.com" />
+        <span class="form-field__error"
+              *ngIf="login.get('email')?.invalid && login.get('email')?.touched">
+          Please enter a valid email address.
+        </span>
+      </div>
+
+      <div class="form-field">
+        <label class="form-field__label" for="password">Password</label>
+        <input class="form-field__input" type="password" id="password"
+               formControlName="password" placeholder="Your password" />
+        <span class="form-field__error"
+              *ngIf="login.get('password')?.invalid && login.get('password')?.touched">
+          Password is required.
+        </span>
+      </div>
+
+      <button class="btn btn--primary auth__submit" type="submit"
+              [disabled]="login.invalid || isSubmitting">
+        <span *ngIf="!isSubmitting">Login</span>
+        <span *ngIf="isSubmitting">Signing in...</span>
+      </button>
+
+      <p class="auth__status auth__status--success" *ngIf="isSuccess">Logged in successfully!</p>
+      <p class="auth__status auth__status--error" *ngIf="isError">Login failed. Please check your credentials.</p>
+    </form>
+
+    <p class="auth__switch">
+      Don't have an account? <a routerLink="/register">Register</a>
+    </p>
   </div>
-  <div class="form-group">
-    <label for="password">Password:</label>
-    <input type="password" id="password" formControlName="password" required />
-  </div>
-  <button type="submit">LOGIN</button>
-  <p *ngIf="isSuccess">You have logged successfully!</p>
-  <div class="error" *ngIf="isError">Login failed. Credentials incorrect</div>
-</form>
+</section>

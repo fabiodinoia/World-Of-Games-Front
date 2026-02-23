@@ -1,16 +1,11 @@
-import {
-  Component,
-  EventEmitter,
-  inject,
-  NgZone,
-  Output,
-} from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, NgZone, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { RepoGameService } from 'src/app/services/game/game.services.service';
+import { RepoUserService } from 'src/app/services/user/user.service';
 import { Game } from 'src/app/types/types';
-import { ActivatedRoute } from '@angular/router';
 import {
   getDownloadURL,
   ref,
@@ -23,27 +18,27 @@ import {
   selector: 'app-add',
   templateUrl: './add.component.html',
   styleUrls: ['./add.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AddComponent {
+export class AddComponent implements OnInit, OnDestroy {
   newGame: FormGroup;
-  @Output() onAdd: EventEmitter<Game>;
-  isSuccess: boolean;
-  isError: boolean;
-  isUpdate: boolean;
+  isSuccess = false;
+  isError = false;
+  isUpdate = false;
+  isSubmitting = false;
   gameToUpdate: Game | undefined;
-  private storage: Storage;
-  private gameImg: File;
+  private readonly storage = inject(Storage);
+  private gameImg = new File([], '');
+  private readonly destroy$ = new Subject<void>();
 
   constructor(
-    public form: FormBuilder,
-    public srv: RepoGameService,
-    public router: Router,
-    public zone: NgZone,
-    public route: ActivatedRoute
+    private readonly form: FormBuilder,
+    private readonly srv: RepoGameService,
+    private readonly userSrv: RepoUserService,
+    private readonly router: Router,
+    private readonly zone: NgZone,
+    private readonly cdr: ChangeDetectorRef
   ) {
-    this.gameImg = new File([], '');
-    this.storage = inject(Storage);
-    this.onAdd = new EventEmitter();
     this.newGame = form.group({
       gameName: ['', Validators.required],
       releaseDate: ['', Validators.required],
@@ -52,27 +47,11 @@ export class AddComponent {
       description: '',
       img: '',
     });
-    this.isSuccess = false;
-    this.isError = false;
-    this.isUpdate = false;
   }
 
-  saveImage(event: any) {
-    this.gameImg = event.target.files[0];
-  }
-
-  async uploadImage(storage: StorageReference, avatar: File): Promise<void> {
-    await uploadBytes(storage, avatar);
-  }
-
-  async getImage(storage: StorageReference): Promise<string> {
-    const avatar = await getDownloadURL(storage);
-    return avatar;
-  }
-
-  ngOnInit() {
+  ngOnInit(): void {
     this.gameToUpdate = this.srv.gameInfo$.value;
-    if (this.gameToUpdate && this.gameToUpdate.id) {
+    if (this.gameToUpdate?.id) {
       this.newGame.patchValue({
         gameName: this.gameToUpdate.gameName,
         releaseDate: this.gameToUpdate.releaseDate,
@@ -86,20 +65,37 @@ export class AddComponent {
     }
   }
 
-  async handleSubmit() {
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  saveImage(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files?.[0]) {
+      this.gameImg = input.files[0];
+    }
+  }
+
+  async handleSubmit(): Promise<void> {
+    if (this.newGame.invalid) {
+      this.newGame.markAllAsTouched();
+      return;
+    }
+
+    this.isSubmitting = true;
+    this.isError = false;
+    this.cdr.markForCheck();
+
     let gameImg = '';
-    let observable: Observable<any>;
+    let observable: Observable<Game>;
 
     if (this.gameImg.name) {
-      const avatarRef = ref(
-        this.storage,
-        `games/${this.newGame.value.gameName}`
-      );
-
+      const avatarRef = ref(this.storage, `games/${this.newGame.value.gameName}`);
       await this.uploadImage(avatarRef, this.gameImg);
-
       gameImg = await this.getImage(avatarRef);
     }
+
     const sendNewGame: Game = {
       gameName: this.newGame.value.gameName,
       releaseDate: this.newGame.value.releaseDate,
@@ -109,30 +105,33 @@ export class AddComponent {
       img: gameImg,
     };
 
-    if (this.isUpdate === true) {
-      observable = this.srv.updateGame(
-        this.gameToUpdate?.id as string,
-        sendNewGame
-      );
+    if (this.isUpdate) {
+      observable = this.srv.updateGame(this.gameToUpdate?.id as string, sendNewGame);
     } else {
       observable = this.srv.createGame(sendNewGame);
     }
 
-    observable.subscribe({
+    observable.pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
+        this.isSubmitting = false;
         this.isSuccess = true;
+        this.cdr.markForCheck();
+        const userId = this.userSrv.userLogged$.value.id;
         setTimeout(() => {
           this.isSuccess = false;
           this.zone.run(() => {
-            this.router.navigate(['/user/:id']);
+            this.router.navigate([`/user/${userId}`]);
           });
-        }, 2000);
+        }, 1500);
       },
       error: () => {
+        this.isSubmitting = false;
         this.isError = true;
+        this.cdr.markForCheck();
         setTimeout(() => {
           this.isError = false;
-        }, 2000);
+          this.cdr.markForCheck();
+        }, 3000);
       },
       complete: () => {
         this.newGame.reset();
@@ -140,7 +139,11 @@ export class AddComponent {
     });
   }
 
-  get submitButtonLabel() {
-    return this.gameToUpdate ? 'Save' : 'Create';
+  private async uploadImage(storage: StorageReference, avatar: File): Promise<void> {
+    await uploadBytes(storage, avatar);
+  }
+
+  private async getImage(storage: StorageReference): Promise<string> {
+    return getDownloadURL(storage);
   }
 }

@@ -1,8 +1,10 @@
 nav {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  margin-top: 13px;
+  margin: 0 auto;
+  width: min(900px, 100%);
+  padding: 1rem 0;
 
   .logo {
     display: flex;
@@ -36,14 +38,14 @@ nav {
     list-style: none;
     padding: 0;
     margin: 0;
-    gap: 10px;
+    gap: 0.5rem;
 
     li {
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      margin: 0 16px;
+      margin: 0 12px;
       text-align: center;
       position: relative;
 
@@ -53,7 +55,7 @@ nav {
         justify-content: center;
         align-items: center;
         text-decoration: none;
-        color: #333;
+        color: #111;
         font-weight: bold;
         font-size: 14px;
         margin-top: 8px;

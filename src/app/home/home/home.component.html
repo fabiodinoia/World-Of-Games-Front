@@ -1,3 +1,91 @@
-<img alt="home-background" class="image" src="./../../../assets/homepage.jpg">
-<p class="title">Welcome to the coolest games market on the web. GL HF!</p>
-<button class="button" routerLink="/login">LOGIN</button>
+<section class="cover-experience" #coverExperience>
+  <div class="cover-experience__stage">
+    <!-- Hero text overlay -->
+    <div class="hero-overlay">
+      <h1 class="hero-overlay__title">World of Games</h1>
+      <p class="hero-overlay__tagline">Discover, collect, and trade the best titles on the planet.</p>
+      <a class="btn btn--primary hero-overlay__cta" routerLink="/games">
+        Browse the store
+      </a>
+    </div>
+
+    <div class="cover-experience__visual">
+      <div class="cover-ring" [style.--ring-radius.px]="ringRadius">
+        <div class="cover-ring__halo"></div>
+        <div class="cover-ring__planet" #ringPlanet></div>
+        <div class="cover-ring__orbit" #ringOrbit>
+          <article
+            class="cover-card"
+            *ngFor="let card of coverCards; let index = index"
+            [attr.aria-label]="card.label"
+            [style.--card-angle]="card.angle + 'deg'"
+            [style.--card-angle-inverse]="-card.angle + 'deg'"
+            [style.zIndex]="index"
+          >
+            <div class="cover-card__animator" #coverCard>
+              <div class="cover-card__inner">
+                <div class="cover-card__face cover-card__face--front" [style.backgroundImage]="'url(' + card.src + ')'">
+                  <span class="cover-card__glow"></span>
+                </div>
+                <div class="cover-card__face cover-card__face--side"></div>
+                <div class="cover-card__edge"></div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Featured Games -->
+<section class="featured panel">
+  <header class="featured__header">
+    <div>
+      <p class="eyebrow">Top Picks</p>
+      <h2>Featured Games</h2>
+    </div>
+    <a class="btn btn--secondary btn--sm" routerLink="/games">View all</a>
+  </header>
+
+  <ul class="featured__list" *ngIf="featuredGames.length; else featuredSkeleton">
+    <li *ngFor="let game of featuredGames; trackBy: trackByGameId" class="featured-card">
+      <a [routerLink]="['/games', game.id]" class="featured-card__link">
+        <img [src]="game.img" [alt]="game.gameName" class="featured-card__img" loading="lazy">
+        <div class="featured-card__overlay">
+          <span class="badge">{{ game.category }}</span>
+          <p class="featured-card__name">{{ game.gameName }}</p>
+          <p class="featured-card__price">{{ game.price | currency:'EUR' }}</p>
+        </div>
+      </a>
+    </li>
+  </ul>
+
+  <ng-template #featuredSkeleton>
+    <ul class="featured__list">
+      <li *ngFor="let i of [1,2,3,4]" class="featured-card featured-card--skeleton">
+        <div class="skeleton" style="width: 100%; aspect-ratio: 3/4;"></div>
+      </li>
+    </ul>
+  </ng-template>
+</section>
+
+<!-- Browse by Category -->
+<section class="categories">
+  <header class="categories__header">
+    <p class="eyebrow">Explore</p>
+    <h2>Browse by Category</h2>
+  </header>
+
+  <div class="categories__grid">
+    <a
+      *ngFor="let cat of categoryLinks"
+      [routerLink]="['/games']"
+      [queryParams]="{ category: cat.value }"
+      class="category-card"
+    >
+      <mat-icon class="category-card__icon">{{ cat.icon }}</mat-icon>
+      <span class="category-card__label">{{ cat.label }}</span>
+    </a>
+  </div>
+</section>

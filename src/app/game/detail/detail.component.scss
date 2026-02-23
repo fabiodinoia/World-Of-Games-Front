@@ -1,81 +1,112 @@
-.game-detail {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start; // Align items to top of container
-  padding: 40px;
-
-  .game-image {
-    margin-right: 50px;
-
-    img {
-      max-width: 100%;
-      height: auto;
-    }
-  }
-
-  .game-info {
-    width: calc(
-      40% - 50px
-    ); // Width is 40% of container minus margin from image
-  }
-
-  .game-info {
-    width: 60%;
-
-    .game-name {
-      font-size: 36px;
-      margin-bottom: 20px;
-    }
-
-    .game-category {
-      font-size: 20px;
-      margin-bottom: 10px;
-    }
-
-    .game-release-date,
-    .game-price {
-      font-size: 16px;
-      margin-bottom: 10px;
-    }
-
-    .game-description {
-      font-size: 18px;
-      line-height: 1.5;
-    }
-  }
-}
-.description {
-  width: 100%; // Full width for description
-  margin-top: 40px;
+:host {
+  display: block;
 }
 
-.image {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vh; /* make the image full screen */
-  height: 100%; /* make the image full screen */
-  z-index: -1; /* put the image behind other elements */
+.detail-page__back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  text-decoration: none;
+  color: var(--muted-text);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  margin-bottom: var(--space-lg);
+  padding: var(--space-sm) 0;
+  transition: color var(--transition-fast);
+
+  &:hover {
+    color: var(--text-color);
+  }
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
 }
 
-.background {
-  background-color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 10rem;
-  padding: 20px 20px 20px 20px;
+.detail-page__content {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-xl);
+}
+
+.detail-page__hero img {
+  width: 100%;
   border-radius: 20px;
+  object-fit: cover;
+  max-height: 420px;
 }
 
-p {
-  font-size: 25px;
+.detail-page__info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
 }
 
-.game-price {
-  font-weight: bold;
-  font-size: 40px;
+.detail-page__info h1 {
+  margin: 0;
+  font-size: var(--heading-1);
+  line-height: 1.15;
 }
 
-h1 {
-  color: white;
-  text-align: center;
-  font-size: xxx-large;
+.detail-page__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+.detail-page__release {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin: 0;
+  color: var(--muted-text);
+  font-size: var(--font-size-sm);
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.detail-page__description {
+  margin: 0;
+  color: var(--muted-text);
+  line-height: 1.7;
+  font-size: var(--font-size-base);
+}
+
+.detail-page__purchase {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  margin-top: var(--space-md);
+  padding-top: var(--space-lg);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.detail-page__price {
+  margin: 0;
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: 800;
+  color: var(--accent-secondary);
+}
+
+.detail-page__loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+@media (min-width: 768px) {
+  .detail-page__content {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .detail-page__hero img {
+    max-height: 520px;
+    height: 100%;
+  }
 }

@@ -1,8 +1,221 @@
 .header {
-  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
 }
-.logo {
-  position: absolute;
-  top: 5%;
-  left: 7%;
+
+.header__inner {
+  width: 100%;
+  max-width: var(--page-max-width);
+  margin: 0 auto;
+  padding: 0 var(--page-padding-x);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xl);
+}
+
+.header__logo {
+  flex-shrink: 0;
+
+  img {
+    width: min(200px, 45vw);
+    cursor: pointer;
+    transition: transform var(--transition-base);
+  }
+
+  &:hover img {
+    transform: scale(1.03);
+  }
+}
+
+/* ── Desktop Nav ── */
+.header__nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex: 1;
+}
+
+.header__link {
+  position: relative;
+  text-decoration: none;
+  color: var(--muted-text);
+  font-weight: 500;
+  font-size: var(--font-size-sm);
+  padding: 0.5rem 0.85rem;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast), background var(--transition-fast);
+
+  &:hover {
+    color: var(--text-color);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  &--active {
+    color: var(--text-color);
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 18px;
+      height: 2px;
+      border-radius: 1px;
+      background: var(--accent-color);
+    }
+  }
+
+  &--cart {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+}
+
+.header__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--accent-color);
+  color: #020b1a;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* ── Auth / User area ── */
+.header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+}
+
+.header__user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  text-decoration: none;
+  color: var(--text-color);
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.header__user-name {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Hamburger button ── */
+.header__hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+
+  span {
+    display: block;
+    width: 100%;
+    height: 2px;
+    background: var(--text-color);
+    border-radius: 1px;
+    transition: transform var(--transition-base), opacity var(--transition-fast);
+
+    &.open:nth-child(1) {
+      transform: translateY(7px) rotate(45deg);
+    }
+
+    &.open:nth-child(2) {
+      opacity: 0;
+    }
+
+    &.open:nth-child(3) {
+      transform: translateY(-7px) rotate(-45deg);
+    }
+  }
+}
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  .header__hamburger {
+    display: flex;
+  }
+
+  .header__inner {
+    flex-wrap: wrap;
+  }
+
+  .header__logo {
+    flex: 1;
+  }
+
+  .header__nav {
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    order: 10;
+    padding-bottom: var(--space-md);
+
+    &--open {
+      display: flex;
+    }
+  }
+
+  .header__link {
+    padding: 0.75rem 1rem;
+    font-size: var(--font-size-base);
+  }
+
+  .header__actions {
+    display: none;
+
+    .header__nav--open ~ & {
+      display: flex;
+      order: 11;
+      width: 100%;
+      justify-content: center;
+      padding-bottom: var(--space-md);
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .header__actions {
+    order: 11;
+  }
+
+  .header__nav--open ~ .header__actions {
+    display: flex;
+  }
 }

@@ -1,19 +1,26 @@
-.login {
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: #ffffff;
-  font-size: 20px;
-  z-index: 10;
-
-  span {
-    color: #00bfff;
-    cursor: pointer;
-  }
+.footer-bar {
+  padding: var(--space-lg) var(--page-padding-x);
 }
 
-.menu {
-  background-color: white;
-  height: 150px;
+.footer-bar__inner {
+  max-width: var(--page-max-width);
+  margin: 0 auto;
+  text-align: center;
+}
+
+.footer-bar__text {
+  margin: 0;
+  color: var(--muted-text);
+  font-size: var(--font-size-sm);
+}
+
+.footer-bar__link {
+  color: var(--accent-color);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color var(--transition-fast);
+
+  &:hover {
+    color: var(--accent-secondary);
+  }
 }

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="ocean" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#05234b"/>
+      <stop offset="100%" stop-color="#021127"/>
+    </linearGradient>
+    <linearGradient id="continent" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#51f0c3"/>
+      <stop offset="100%" stop-color="#17825d"/>
+    </linearGradient>
+    <linearGradient id="continent2" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f3d47a"/>
+      <stop offset="100%" stop-color="#c4972d"/>
+    </linearGradient>
+    <linearGradient id="ice" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f8fbff" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#cde7ff" stop-opacity="0.8"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="600" fill="url(#ocean)"/>
+  <g fill="url(#continent)">
+    <path d="M130 260c20-60 110-90 140-85s90 35 110 60-20 90-60 110-70 40-110 30-80-50-80-80 0-15 0-15z"/>
+    <path d="M430 280c40-50 110-70 150-65s100 40 130 65 30 80-15 105-120 20-160 0-70-50-75-75 5-30 5-30z"/>
+    <path d="M780 250c35-30 120-60 160-50s80 50 90 80-30 80-70 100-120 15-150-10-55-65-35-90z"/>
+    <path d="M1010 320c30-20 80-20 110-10s45 40 40 60-40 40-70 45-80 0-90-20 0-55 10-75z"/>
+  </g>
+  <g fill="url(#continent2)">
+    <path d="M500 330c30-20 50-20 70-10s40 40 25 60-70 40-90 35-20-45-5-65z"/>
+    <path d="M870 200c20-20 60-35 90-25s40 45 25 65-60 35-80 25-35-45-35-65z"/>
+    <path d="M240 360c30-15 60-5 80 10s30 50 5 70-80 15-100-5-15-60 15-75z"/>
+  </g>
+  <g fill="#a5d8ff" opacity="0.25">
+    <path d="M100 200c60-50 180-80 260-70s170 60 200 105-20 110-80 140-160 20-230-15-130-110-120-140 30-20 30-20z"/>
+    <path d="M650 210c50-40 120-50 170-40s110 60 120 100-30 100-90 120-150 10-180-30-35-120-20-150z"/>
+  </g>
+  <path d="M0 30c0-15 120-30 150-30s30 15 30 30-120 30-150 30S0 45 0 30z" fill="url(#ice)"/>
+  <path d="M0 570c0 15 120 30 150 30s30-15 30-30-120-30-150-30-30 15-30 30z" fill="url(#ice)"/>
+  <path d="M1050 30c0-12 150-30 150-30v60s-150-18-150-30z" fill="url(#ice)"/>
+  <path d="M1050 570c0 12 150 30 150 30v-60s-150 18-150 30z" fill="url(#ice)"/>
+</svg>

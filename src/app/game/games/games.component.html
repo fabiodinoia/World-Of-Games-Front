@@ -1,29 +1,64 @@
-<img alt="home-background" class="image" src="./../../../assets/background3.png">
+<section class="games panel">
+  <header class="games__header">
+    <div>
+      <p class="eyebrow">Marketplace</p>
+      <h1>Browse the latest drops</h1>
+      <p class="games__subtitle">Pick a category or scroll through the full catalogue.</p>
+    </div>
 
-<div class="game-category">
-  <label id="labelt" for="category-select">Filter by category:</label>
-  <select id="category-select" [(ngModel)]="selectedCategory" (ngModelChange)="onCategorySelect()">
-    <option value="">All</option>
-    <option value="MOBA">MOBA</option>
-    <option value="RPG">RPG</option>
-    <option value="MMO">MMO</option>
-    <option value="FPS">FPS</option>
-    <option value="Action">Action</option>
-  </select>
-</div>
+    <div class="category-pills" role="radiogroup" aria-label="Filter by category">
+      <button
+        *ngFor="let cat of categories"
+        class="category-pill"
+        [class.category-pill--active]="selectedCategory === cat.value"
+        (click)="selectedCategory = cat.value; onCategorySelect()"
+        [attr.aria-pressed]="selectedCategory === cat.value"
+        type="button">
+        {{ cat.label }}
+      </button>
+    </div>
+  </header>
 
-<ul>
-  <li *ngFor="let game of games">
-    <a [routerLink]="game.id">
-      <div class="game-card">
-        <img class="game-img" [src]="game.img" alt="{{game.gameName}}">
+  <!-- Loading skeleton -->
+  <ul class="games__list" *ngIf="isLoading; else gamesList">
+    <li class="game-card game-card--skeleton" *ngFor="let i of [1,2,3,4,5,6]">
+      <div class="skeleton game-card__img-skeleton"></div>
+      <div class="game-card__info">
+        <div class="skeleton" style="height: 1.2rem; width: 75%;"></div>
+        <div class="skeleton" style="height: 0.85rem; width: 40%; margin-top: 0.5rem;"></div>
+        <div class="skeleton" style="height: 1rem; width: 30%; margin-top: 0.5rem;"></div>
       </div>
-      <div class="game-info">
-        <p class="game-name">{{ game.gameName }}</p>
-        <p class="game-category">{{ game.category }}</p>
-        <p class="game-price">{{ game.price }}€</p>
-      </div>
-    </a>
-    <mat-icon (click)="addCart(game)">shopping_cart</mat-icon>
-  </li>
-</ul>
+    </li>
+  </ul>
+
+  <!-- Actual games list -->
+  <ng-template #gamesList>
+    <ul class="games__list" *ngIf="games.length; else emptyState">
+      <li class="game-card" *ngFor="let game of games; trackBy: trackByGameId">
+        <a class="game-card__link" [routerLink]="['/games', game.id]">
+          <img class="game-card__img" [src]="game.img" [alt]="game.gameName" loading="lazy">
+          <div class="game-card__info">
+            <p class="game-card__name">{{ game.gameName }}</p>
+            <span class="badge">{{ game.category }}</span>
+            <p class="game-card__price">{{ game.price | currency:'EUR' }}</p>
+          </div>
+        </a>
+        <button type="button" class="game-card__cta btn btn--icon" (click)="addCart(game)" aria-label="Add to cart">
+          <mat-icon>add_shopping_cart</mat-icon>
+        </button>
+      </li>
+    </ul>
+  </ng-template>
+
+  <!-- Empty state -->
+  <ng-template #emptyState>
+    <div class="games__empty">
+      <mat-icon class="games__empty-icon">sports_esports</mat-icon>
+      <h2>No games found</h2>
+      <p>Try selecting a different category or check back later.</p>
+      <button class="btn btn--secondary" (click)="selectedCategory = 'all'; onCategorySelect()" type="button">
+        Show all games
+      </button>
+    </div>
+  </ng-template>
+</section>

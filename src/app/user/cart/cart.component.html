@@ -1,20 +1,53 @@
-<img class="background" alt="home-background" class="image" src="./../../../assets/background3.png">
-<div class="user-info" *ngIf="this.currentUser$ | async as user">
-  <h2>My Cart</h2>
-  <div class="user-games">
-    <ul>
-      <li *ngFor="let game of user.shopList">
-        <div class="game-info">
-          <img class="game-photo" src="{{ game.img }}" alt="Game Cover">
-          <div class="game-details">
-            <p>{{ game.gameName }}</p>
-            <p>{{ game.category }}</p>
-            <p>Release Date: {{ game.releaseDate }}</p>
-            <p>Price: {{ game.price }}€</p>
+<section class="cart panel" *ngIf="currentUser$ | async as user">
+  <header class="cart__header">
+    <p class="eyebrow">Your basket</p>
+    <h2>My Cart</h2>
+  </header>
+
+  <!-- Cart items -->
+  <div class="cart__body" *ngIf="user.shopList?.length; else emptyCart">
+    <ul class="cart__list">
+      <li class="cart__item" *ngFor="let game of user.shopList">
+        <div class="cart__item-info">
+          <img class="cart__item-img" [src]="game.img" [alt]="game.gameName" loading="lazy">
+          <div class="cart__item-details">
+            <p class="cart__item-name">{{ game.gameName }}</p>
+            <span class="badge">{{ game.category }}</span>
+            <p class="cart__item-price">{{ game.price | currency:'EUR' }}</p>
           </div>
         </div>
-        <mat-icon (click)="removeGame(game)">remove_shopping_cart</mat-icon>
+        <button type="button" class="btn btn--ghost btn--sm cart__remove" (click)="removeGame(game)">
+          <mat-icon>close</mat-icon>
+          Remove
+        </button>
       </li>
     </ul>
+
+    <!-- Order summary -->
+    <aside class="cart__summary">
+      <h3>Order Summary</h3>
+      <div class="cart__summary-row">
+        <span>Items</span>
+        <span>{{ user.shopList?.length }}</span>
+      </div>
+      <div class="cart__summary-row cart__summary-total">
+        <span>Total</span>
+        <span>{{ getTotal(user.shopList) | currency:'EUR' }}</span>
+      </div>
+      <button class="btn btn--primary cart__checkout" type="button" disabled>
+        Checkout
+      </button>
+      <p class="cart__checkout-note">Checkout is coming soon.</p>
+    </aside>
   </div>
-</div>
+
+  <!-- Empty state -->
+  <ng-template #emptyCart>
+    <div class="cart__empty">
+      <mat-icon class="cart__empty-icon">shopping_cart</mat-icon>
+      <h3>Your cart is empty</h3>
+      <p>Browse our collection and find something you love.</p>
+      <a class="btn btn--primary" routerLink="/games">Browse Games</a>
+    </div>
+  </ng-template>
+</section>

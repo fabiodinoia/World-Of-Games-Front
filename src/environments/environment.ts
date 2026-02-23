@@ -1,6 +1,6 @@
 export const environment = {
-  secret: 'This is a secret',
   production: true,
+  apiUrl: 'http://localhost:4800',
   firebase: {
     apiKey: 'AIzaSyCF8tapcUZ7Zd-6Yxg-q0SetCoZm3c6BMc',
     authDomain: 'world-of-games-33c47.firebaseapp.com',

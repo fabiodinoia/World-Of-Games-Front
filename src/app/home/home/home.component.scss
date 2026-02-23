@@ -1,67 +1,452 @@
-.image {
-  position: fixed;
-  top: 0;
-  left: 0;
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(3rem, 5vw, 5rem);
+  padding: clamp(2rem, 4vw, 3rem) clamp(1rem, 3vw, 2rem) clamp(4rem, 6vw, 6rem);
+  align-items: stretch;
+  --cube-size: min(280px, 60vw);
+  --cube-depth: calc(var(--cube-size) / 2);
+}
+
+.cover-experience {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  min-height: 130vh;
+}
+
+.cover-experience__stage {
+  width: 100%;
+  position: sticky;
+  top: clamp(2rem, 10vh, 5rem);
+  height: calc(100vh - 80px);
+  border-radius: var(--radius-xl);
+  background: radial-gradient(circle at top, rgba(10, 26, 47, 0.95), rgba(5, 6, 12, 0.95));
+  padding: clamp(2rem, 4vw, 4rem);
+  box-shadow: var(--shadow-elevated);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  justify-content: center;
+  align-items: center;
+  overflow: visible;
+}
+
+/* ── Hero overlay ── */
+.hero-overlay {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  margin-bottom: clamp(1rem, 3vw, 2rem);
+  pointer-events: auto;
+}
+
+.hero-overlay__title {
+  font-size: clamp(2.5rem, 7vw, 4.5rem);
+  font-weight: 800;
+  margin: 0;
+  background: linear-gradient(135deg, var(--text-color) 30%, var(--accent-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.1;
+}
+
+.hero-overlay__tagline {
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  color: var(--muted-text);
+  margin: var(--space-md) auto 0;
+  max-width: 480px;
+  line-height: 1.5;
+}
+
+.hero-overlay__cta {
+  margin-top: var(--space-xl);
+  padding: 0.9rem 2.2rem;
+  font-size: var(--font-size-lg);
+}
+
+/* ── 3D scene ── */
+.cover-experience__visual {
+  position: relative;
+  width: 100%;
+  min-height: clamp(360px, 55vw, 620px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1800px;
+  perspective-origin: center;
+}
+
+.cover-ring {
+  position: relative;
+  width: min(860px, 100%);
+  aspect-ratio: 1 / 0.55;
+  transform-style: preserve-3d;
+}
+
+.cover-ring__orbit {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  perspective-origin: center;
+}
+
+.cover-ring__halo {
+  position: absolute;
+  top: 55%;
+  left: 50%;
+  width: 120%;
+  height: 35%;
+  transform: translate(-50%, -50%) rotateX(85deg);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(24, 72, 138, 0.4), transparent 70%);
+  filter: blur(14px);
+  opacity: 0.7;
+}
+
+.cover-ring__planet {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(120px, 18vw, 220px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  isolation: isolate;
+  background-image:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 38%),
+    radial-gradient(circle at 68% 72%, rgba(1, 4, 12, 0.1), rgba(1, 4, 12, 0.9) 82%),
+    url('/assets/earth-albedo.jpg'),
+    url('/assets/earth-night-lights.png');
+  background-size: 120% 120%, 120% 120%, auto 160%, auto 160%;
+  background-position: center center, center center, center center, center center;
+  background-repeat: no-repeat;
+  background-blend-mode: screen, multiply, normal, screen;
+  box-shadow:
+    0 0 45px rgba(84, 173, 255, 0.45),
+    inset 0 -30px 45px rgba(3, 10, 25, 0.75);
+  overflow: visible;
+}
+
+.cover-ring__planet::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background-image: url('/assets/earth-clouds.png');
+  background-size: 220% auto;
+  background-position: center;
+  background-repeat: no-repeat;
+  mix-blend-mode: screen;
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.cover-ring__planet::after {
+  content: '';
+  position: absolute;
+  inset: -15%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(88, 173, 255, 0.45), transparent 65%);
+  filter: blur(12px);
+  opacity: 0.55;
+  animation: planet-glow 6s ease-in-out infinite;
+  pointer-events: none;
   z-index: -1;
 }
 
-.button {
+/* ── Cover cards ── */
+.cover-card {
   position: absolute;
-  top: 120%;
-  left: 88%;
-  transform: translate(-50%, -50%);
-  background-color: #54adff;
-  opacity: 0.8;
-  color: #ffffff;
-  border: none;
-  padding: 30px 60px;
-  border-radius: 15px;
-  font-size: 24px;
-}
-
-.text {
-  position: absolute;
-  bottom: 10px;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
-  color: #ffffff;
-  font-size: 22px;
-
-  span {
-    color: #00bfff;
-    cursor: pointer;
-  }
+  width: clamp(130px, 14vw, 170px);
+  aspect-ratio: 2 / 3;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  pointer-events: none;
+  transform: translate3d(-50%, -50%, 0)
+    rotateY(var(--card-angle, 0deg))
+    translateZ(var(--ring-radius, 380px));
 }
 
-.title {
+.cover-card__animator {
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.cover-card__inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  border-radius: 16px;
+  overflow: visible;
+  box-shadow: 0 30px 55px rgba(0, 0, 0, 0.5);
+  transform: rotateY(var(--card-angle-inverse, 0deg));
+}
+
+.cover-card__face {
   position: absolute;
-  top: 60%;
-  left: 5%;
-  transform: translate(-50%, -50%);
-  color: #ffffff;
-  font-size: 50px;
-  width: 130%; /* adjust the width as needed */
+  inset: 0;
+  border-radius: 16px;
+  background-size: cover;
+  background-position: center;
+  backface-visibility: hidden;
+  overflow: hidden;
 }
 
-.title {
-  animation: bounce 2s infinite;
+.cover-card__face--front {
+  transform: translateZ(8px);
+  border: 1px solid rgba(84, 173, 255, 0.4);
 }
 
-@keyframes bounce {
+.cover-card__face--side {
+  width: 16px;
+  right: -8px;
+  top: 0;
+  bottom: 0;
+  border-radius: 6px;
+  background: linear-gradient(180deg, rgba(3, 19, 41, 0.95), rgba(6, 35, 72, 0.75));
+  transform-origin: left center;
+  transform: rotateY(90deg) translateX(-8px);
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.cover-card__edge {
+  position: absolute;
+  inset: 2px;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.05);
+  transform: translateZ(4px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.cover-card__glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 20% 20%, rgba(84, 173, 255, 0.35), transparent 70%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+@keyframes planet-glow {
   0%,
-  20%,
-  50%,
-  80%,
   100% {
-    transform: translateY(0);
+    opacity: 0.45;
+    transform: scale(1);
   }
-  40% {
-    transform: translateY(-10px);
+  50% {
+    opacity: 0.75;
+    transform: scale(1.06);
   }
-  60% {
-    transform: translateY(-5px);
+}
+
+/* ── Featured Games ── */
+.featured {
+  width: 100%;
+}
+
+.featured__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+
+  h2 {
+    margin: var(--space-xs) 0 0;
+    font-size: var(--heading-2);
+  }
+}
+
+.featured__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-lg);
+}
+
+.featured-card {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  position: relative;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+
+  &:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-elevated);
+  }
+}
+
+.featured-card__link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+}
+
+.featured-card__img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  display: block;
+}
+
+.featured-card__overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: var(--space-lg);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, transparent 60%);
+}
+
+.featured-card__name {
+  margin: var(--space-sm) 0 0;
+  font-weight: 700;
+  font-size: var(--font-size-lg);
+  line-height: 1.2;
+}
+
+.featured-card__price {
+  margin: var(--space-xs) 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--accent-secondary);
+  font-weight: 600;
+}
+
+.featured-card--skeleton {
+  background: var(--card-color);
+  border-radius: var(--radius-lg);
+}
+
+/* ── Categories ── */
+.categories {
+  width: 100%;
+}
+
+.categories__header {
+  margin-bottom: var(--space-xl);
+
+  h2 {
+    margin: var(--space-xs) 0 0;
+    font-size: var(--heading-2);
+  }
+}
+
+.categories__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: var(--space-md);
+}
+
+.category-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xl) var(--space-md);
+  border-radius: var(--radius-lg);
+  background: var(--card-color);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  text-decoration: none;
+  color: var(--text-color);
+  transition: transform var(--transition-base), border-color var(--transition-base), box-shadow var(--transition-base);
+
+  &:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent-color);
+    box-shadow: var(--shadow-accent);
+  }
+}
+
+.category-card__icon {
+  font-size: 2rem;
+  width: 2rem;
+  height: 2rem;
+  color: var(--accent-color);
+}
+
+.category-card__label {
+  font-weight: 600;
+  font-size: var(--font-size-base);
+}
+
+/* ── Mobile ── */
+@media (max-width: 640px) {
+  .cover-experience {
+    min-height: auto;
+  }
+
+  .cover-experience__stage {
+    position: static;
+    height: auto;
+    padding: clamp(2rem, 4vw, 3rem) clamp(1rem, 3vw, 2rem);
+  }
+
+  .hero-overlay__title {
+    font-size: clamp(2rem, 8vw, 3rem);
+  }
+
+  .cover-ring {
+    width: 100%;
+    aspect-ratio: auto;
+  }
+
+  .cover-ring__halo,
+  .cover-ring__planet {
+    display: none;
+  }
+
+  .cover-ring__orbit {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    transform: none !important;
+  }
+
+  .cover-card {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 100%;
+    opacity: 1;
+    visibility: visible;
+    transform: none !important;
+  }
+
+  .cover-card__animator {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .cover-card__inner {
+    transform: none !important;
+  }
+
+  .featured__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .featured__list {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
+  }
+
+  .categories__grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }

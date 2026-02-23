@@ -1,6 +1,8 @@
-import { Component, EventEmitter, Output, NgZone } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { Component, OnDestroy, NgZone, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { RepoUserService } from 'src/app/services/user/user.service';
 import { Login } from 'src/app/types/types';
 
@@ -8,58 +10,75 @@ import { Login } from 'src/app/types/types';
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class LoginComponent {
+export class LoginComponent implements OnDestroy {
   login: FormGroup;
-  @Output() onAdd: EventEmitter<string>;
-  isSuccess: boolean;
-  isError: boolean;
+  isSuccess = false;
+  isError = false;
+  isSubmitting = false;
+  private readonly destroy$ = new Subject<void>();
+
   constructor(
-    public form: FormBuilder,
-    public srv: RepoUserService,
-    public router: Router,
-    public zone: NgZone
+    private readonly form: FormBuilder,
+    private readonly srv: RepoUserService,
+    private readonly router: Router,
+    private readonly zone: NgZone,
+    private readonly cdr: ChangeDetectorRef
   ) {
-    this.onAdd = new EventEmitter();
     this.login = form.group({
-      email: '',
-      password: '',
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required]],
     });
-    this.isSuccess = false;
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  handleSubmit(): void {
+    if (this.login.invalid) {
+      this.login.markAllAsTouched();
+      return;
+    }
+
+    this.isSubmitting = true;
     this.isError = false;
-  }
+    this.cdr.markForCheck();
 
-  async ngOnInit(): Promise<void> {
-    this.srv.token$.subscribe();
-  }
-
-  handleSubmit() {
-    const sendLogUser: Login = {
+    const credentials: Login = {
       email: this.login.value.email,
       password: this.login.value.password,
     };
-    this.srv.loginUser(sendLogUser).subscribe({
-      next: (response: any) => {
-        this.isSuccess = true;
-        this.srv.token$.next(response);
 
-        setTimeout(() => {
-          this.isSuccess = false;
-          this.zone.run(() => {
-            this.router.navigate(['/games/']);
-          });
-        }, 2000);
-      },
-      error: () => {
-        this.isError = true;
-        setTimeout(() => {
-          this.isError = false;
-        }, 2000);
-      },
-
-      complete: () => {
-        this.login.reset();
-      },
-    });
+    this.srv
+      .loginUser(credentials)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.isSubmitting = false;
+          this.isSuccess = true;
+          this.cdr.markForCheck();
+          setTimeout(() => {
+            this.isSuccess = false;
+            this.zone.run(() => {
+              this.router.navigate(['/games']);
+            });
+          }, 1500);
+        },
+        error: () => {
+          this.isSubmitting = false;
+          this.isError = true;
+          this.cdr.markForCheck();
+          setTimeout(() => {
+            this.isError = false;
+            this.cdr.markForCheck();
+          }, 3000);
+        },
+        complete: () => {
+          this.login.reset();
+        },
+      });
   }
 }
