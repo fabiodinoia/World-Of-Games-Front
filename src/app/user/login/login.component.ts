@@ -31,7 +31,6 @@ export class LoginComponent {
     password: ['', [Validators.required]],
   });
 
-  readonly isSuccess = signal(false);
   readonly isError = signal(false);
   readonly isSubmitting = signal(false);
   /** Which button started the sign-in, so only that one shows the busy bar. */
@@ -63,14 +62,12 @@ export class LoginComponent {
       .loginUser(credentials)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
+        // Go straight on: the button stays busy until the router's view transition swaps the
+        // page, so there is no idle "signed in" moment and no form reset flashing underneath.
         next: () => {
-          this.isSubmitting.set(false);
-          this.isSuccess.set(true);
-          this.login.reset();
-          setTimeout(() => {
-            this.isSuccess.set(false);
-            this.router.navigateByUrl(this.returnUrl(this.viaDemo() ? '/home' : '/games'));
-          }, 1500);
+          this.router
+            .navigateByUrl(this.returnUrl(this.viaDemo() ? '/home' : '/games'))
+            .finally(() => this.isSubmitting.set(false));
         },
         error: () => {
           this.isSubmitting.set(false);

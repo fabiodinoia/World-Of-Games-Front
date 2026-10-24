@@ -44,9 +44,6 @@
         {{ isSubmitting() ? 'Signing in...' : 'Sign in' }}
       </button>
 
-      @if (isSuccess()) {
-        <p class="notice notice--success" role="status">Signed in. Taking you back...</p>
-      }
       @if (isError()) {
         <p class="notice notice--error" role="alert">That email and password don't match an account. Check them, or try the demo.</p>
       }
