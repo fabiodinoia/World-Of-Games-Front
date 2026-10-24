@@ -13,13 +13,14 @@ import { PriceComponent } from 'src/app/shared/price/price.component';
 import { CoverMorphDirective } from 'src/app/shared/motion/cover-morph';
 import { RouterLink } from '@angular/router';
 import { AsyncPipe, CurrencyPipe } from '@angular/common';
+import { ImgSkeletonDirective } from 'src/app/shared/motion/img-skeleton';
 
 @Component({
   selector: 'app-cart',
   templateUrl: './cart.component.html',
   styleUrls: ['./cart.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, PriceComponent, RouterLink, AsyncPipe, CurrencyPipe, CoverMorphDirective],
+  imports: [IconComponent, PriceComponent, RouterLink, AsyncPipe, CurrencyPipe, CoverMorphDirective, ImgSkeletonDirective],
 })
 export class CartComponent implements OnInit {
   currentUser$!: Observable<User>;

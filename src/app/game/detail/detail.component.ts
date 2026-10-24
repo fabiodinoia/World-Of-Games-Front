@@ -25,6 +25,7 @@ import { SceneFactory, SceneHandle } from 'src/app/shared/three/scene-types';
 import type { BackInfo } from 'src/app/shared/three/scenes/game-case.scene';
 import { ThreeHostComponent } from 'src/app/shared/three/three-host.component';
 import { Game } from 'src/app/types/types';
+import { ImgSkeletonDirective } from 'src/app/shared/motion/img-skeleton';
 
 /** Mirrors the SCSS `max-width: 720px` breakpoint that hides the 3D case. */
 export const DESKTOP_QUERY = '(min-width: 721px)';
@@ -42,7 +43,7 @@ export const ownerId = (game: Game | null): string => {
   templateUrl: './detail.component.html',
   styleUrls: ['./detail.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, IconComponent, PriceComponent, ConfirmDialogComponent, ThreeHostComponent],
+  imports: [RouterLink, IconComponent, PriceComponent, ConfirmDialogComponent, ThreeHostComponent, ImgSkeletonDirective],
 })
 export class DetailComponent {
   private readonly gameSrv = inject(RepoGameService);

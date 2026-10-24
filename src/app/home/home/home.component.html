@@ -20,7 +20,7 @@
       </div>
       <a class="hero__cover cover-link" [routerLink]="['/games', game.id]" tabindex="-1" aria-hidden="true" appCoverMorph>
         <div class="cover" #heroCover>
-          <img [src]="game.img" alt="" width="360" height="480" fetchpriority="high" loading="eager">
+          <img appImgSkeleton [src]="game.img" alt="" width="360" height="480" fetchpriority="high" loading="eager">
         </div>
       </a>
     </div>
@@ -69,7 +69,7 @@
           <li class="featured-card" [appReveal]="'featured:' + game.id">
             <a class="cover-link" [routerLink]="['/games', game.id]" appCoverMorph>
               <div class="cover">
-                <img [src]="game.img" [alt]="'Cover art for ' + game.gameName" width="300" height="400">
+                <img appImgSkeleton [src]="game.img" [alt]="'Cover art for ' + game.gameName" width="300" height="400">
                 <app-price class="featured-card__price" [value]="game.price" />
               </div>
               <div class="cover-caption">
@@ -103,7 +103,7 @@
           <li [appReveal]="'shelf:' + shelf.title + ':' + game.id">
             <a class="cover-link" [routerLink]="['/games', game.id]" appCoverMorph>
               <div class="cover">
-                <img [src]="game.img" [alt]="'Cover art for ' + game.gameName" loading="lazy" width="240" height="320">
+                <img appImgSkeleton [src]="game.img" [alt]="'Cover art for ' + game.gameName" loading="lazy" width="240" height="320">
               </div>
               <div class="cover-caption">
                 <span class="cover-caption__name">{{ game.gameName }}</span>

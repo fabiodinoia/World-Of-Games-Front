@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ImgSkeletonDirective } from 'src/app/shared/motion/img-skeleton';
 
 /** 1x1 transparent GIF: phones get this instead of the decorative covers. */
 const BLANK =
@@ -12,6 +13,7 @@ const BLANK =
 @Component({
   selector: 'app-auth-art',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ImgSkeletonDirective],
   host: { 'aria-hidden': 'true' },
   template: `
     <div class="wall">
@@ -23,7 +25,7 @@ const BLANK =
                 @for (slug of col; track slug) {
                   <picture>
                     <source media="(max-width: 900px)" [attr.srcset]="blank" />
-                    <img [src]="'assets/covers/' + slug + '-cover.jpeg'" alt="" width="240" height="320" decoding="async" />
+                    <img appImgSkeleton [src]="'assets/covers/' + slug + '-cover.jpeg'" alt="" width="240" height="320" decoding="async" />
                   </picture>
                 }
               </div>

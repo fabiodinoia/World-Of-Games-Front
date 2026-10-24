@@ -730,6 +730,33 @@ input[type='file'].field__control {
   }
 }
 
+/* Image placeholder (appImgSkeleton): the same light band, painted on the <img> itself while
+   it loads (an unloaded image shows only its background), then a short fade-in. */
+img.img-loading {
+  background: linear-gradient(90deg, var(--night) 35%, rgb(59 52 102 / 55%) 50%, var(--night) 65%) var(--night);
+  background-size: 300% 100%;
+  animation: img-shimmer 2s var(--ease-in-out) infinite;
+}
+
+img.img-fade-in {
+  animation: img-fade-in var(--dur-slow) var(--ease-out);
+}
+
+@keyframes img-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
+@keyframes img-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
 @keyframes btn-busy {
   from {
     transform: translateX(-100%);
@@ -819,6 +846,11 @@ input[type='file'].field__control {
     animation: none;
     transform: none;
     opacity: 0;
+  }
+
+  img.img-loading,
+  img.img-fade-in {
+    animation: none;
   }
 
   .btn[aria-busy='true']::after {

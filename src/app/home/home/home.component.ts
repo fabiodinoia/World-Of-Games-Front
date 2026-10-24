@@ -15,6 +15,7 @@ import { CoverMorphDirective } from 'src/app/shared/motion/cover-morph';
 import { RevealDirective } from 'src/app/shared/motion/reveal';
 import { GAME_CATEGORIES, gameCategory } from 'src/app/types/categories';
 import { Game } from 'src/app/types/types';
+import { ImgSkeletonDirective } from 'src/app/shared/motion/img-skeleton';
 
 interface Shelf {
   title: string;
@@ -27,7 +28,7 @@ interface Shelf {
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, PriceComponent, CoverMorphDirective, RevealDirective],
+  imports: [RouterLink, PriceComponent, CoverMorphDirective, RevealDirective, ImgSkeletonDirective],
 })
 export class HomeComponent implements OnInit {
   private readonly gameSrv = inject(RepoGameService);

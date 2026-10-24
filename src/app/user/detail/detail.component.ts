@@ -15,13 +15,14 @@ import { ConfirmDialogComponent } from 'src/app/shared/confirm-dialog/confirm-di
 import { IconComponent } from 'src/app/shared/icon/icon.component';
 import { PriceComponent } from 'src/app/shared/price/price.component';
 import { CoverMorphDirective } from 'src/app/shared/motion/cover-morph';
+import { ImgSkeletonDirective } from 'src/app/shared/motion/img-skeleton';
 
 @Component({
   selector: 'app-detail',
   templateUrl: './detail.component.html',
   styleUrls: ['./detail.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, AsyncPipe, IconComponent, PriceComponent, ConfirmDialogComponent, CoverMorphDirective],
+  imports: [RouterLink, AsyncPipe, IconComponent, PriceComponent, ConfirmDialogComponent, CoverMorphDirective, ImgSkeletonDirective],
 })
 export class UserDetailComponent {
   private readonly srv = inject(RepoUserService);
