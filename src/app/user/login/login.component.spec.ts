@@ -1,78 +1,114 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
 import {
   ComponentFixture,
   TestBed,
   fakeAsync,
   tick,
 } from '@angular/core/testing';
-import { ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { RouterTestingModule } from '@angular/router/testing';
-import { of, throwError } from 'rxjs';
-import { GamesComponent } from 'src/app/game/games/games.component';
+import {
+  provideRouter,
+  Router,
+  ActivatedRoute,
+  convertToParamMap,
+} from '@angular/router';
+import { throwError } from 'rxjs';
 import { RepoUserService } from 'src/app/services/user/user.service';
-import { mockUserService, mockToken, mockPass } from 'src/app/utils/mocks';
+import { createUserServiceMock, mockPass } from 'src/app/utils/mocks';
 import { LoginComponent } from './login.component';
+import { DEMO_CREDENTIALS } from './demo-credentials';
 
 describe('LoginComponent', () => {
-  let component: LoginComponent;
   let fixture: ComponentFixture<LoginComponent>;
-  let srv: RepoUserService;
+  let component: LoginComponent;
+  let srv: ReturnType<typeof createUserServiceMock>;
+  let router: Router;
 
-  beforeEach(async () => {
+  const setup = async (returnUrl?: string) => {
+    srv = createUserServiceMock();
     await TestBed.configureTestingModule({
-      declarations: [LoginComponent],
-      imports: [
-        HttpClientTestingModule,
-        ReactiveFormsModule,
-        FormsModule,
-        RouterTestingModule.withRoutes([
-          { path: 'games', component: GamesComponent },
-        ]),
-      ],
+      imports: [LoginComponent],
       providers: [
+        provideRouter([]),
+        { provide: RepoUserService, useValue: srv },
         {
-          provide: RepoUserService,
-          useValue: mockUserService,
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              queryParamMap: convertToParamMap(returnUrl ? { returnUrl } : {}),
+            },
+          },
         },
       ],
     }).compileComponents();
     fixture = TestBed.createComponent(LoginComponent);
     component = fixture.componentInstance;
-    srv = TestBed.inject(RepoUserService);
+    router = TestBed.inject(Router);
+    spyOn(router, 'navigateByUrl').and.resolveTo(true);
     fixture.detectChanges();
+  };
+
+  it('does not call the API with an invalid form', async () => {
+    await setup();
+    component.handleSubmit();
+    expect(srv.loginUser).not.toHaveBeenCalled();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-
-  describe('Given the handleSubmit method', () => {
-    describe('When called with correct data', () => {
-      it('Should call the users login service and next', fakeAsync(() => {
-        component.login.value['email'] = 'TestMail';
-        component.login.value['password'] = mockPass;
-        const spyLogin = spyOn(srv, 'loginUser').and.returnValue(of(mockToken));
-        const spyZoneRun = spyOn(component.zone, 'run').and.callThrough();
-        component.handleSubmit();
-        tick(2000);
-        expect(spyLogin).toHaveBeenCalled();
-        expect(spyZoneRun).toHaveBeenCalled();
-        expect(component.isSuccess).toBeFalse();
-        expect(component.isError).toBeFalse();
-        expect(component.router.url).toBe('/games');
-      }));
+  it('logs in and navigates to the catalog', fakeAsync(() => {
+    setup();
+    tick();
+    component.login.setValue({ email: 'a@b.dev', password: mockPass });
+    component.handleSubmit();
+    expect(srv.loginUser).toHaveBeenCalledWith({
+      email: 'a@b.dev',
+      password: mockPass,
     });
+    expect(component.isSuccess()).toBeTrue();
+    tick(1500);
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/games');
+  }));
 
-    describe('When called with incorrect data', () => {
-      it('Should call the aikidoUsers login service and return', fakeAsync (() => {
-        const spyLogin = spyOn(srv, 'loginUser').and.returnValue(
-          throwError(() => 'error')
-        );
-        component.handleSubmit();
-        tick(3000);
-        expect(spyLogin).toHaveBeenCalled();
-        expect(component.isError).toBeFalse();
-      }));
-    });
-  });
+  it('returns to the guarded page that redirected here', fakeAsync(() => {
+    setup('/cart');
+    tick();
+    component.login.setValue({ email: 'a@b.dev', password: mockPass });
+    component.handleSubmit();
+    tick(1500);
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/cart');
+  }));
+
+  it('ignores external returnUrls', fakeAsync(() => {
+    setup('//evil.example');
+    tick();
+    component.loginAsDemo();
+    tick(1500);
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/home');
+  }));
+
+  it('demo sign-in honours a valid returnUrl', fakeAsync(() => {
+    setup('/cart');
+    tick();
+    component.loginAsDemo();
+    tick(1500);
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/cart');
+  }));
+
+  it('signs in with the demo account in one click', fakeAsync(() => {
+    setup();
+    tick();
+    fixture.nativeElement.querySelector('[data-testid="demo-login"]').click();
+    expect(srv.loginUser).toHaveBeenCalledWith({ ...DEMO_CREDENTIALS });
+    tick(1500);
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/home');
+  }));
+
+  it('shows then clears the error state on failure', fakeAsync(() => {
+    setup();
+    tick();
+    srv.loginUser.and.returnValue(throwError(() => new Error('401')));
+    component.login.setValue({ email: 'a@b.dev', password: 'wrong' });
+    component.handleSubmit();
+    expect(component.isError()).toBeTrue();
+    expect(component.isSubmitting()).toBeFalse();
+    tick(3000);
+    expect(component.isError()).toBeFalse();
+  }));
 });

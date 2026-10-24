@@ -1,57 +1,40 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Router, NavigationEnd } from '@angular/router';
+import { Component } from '@angular/core';
+import { provideRouter, Router } from '@angular/router';
 import { FooterComponent } from './footer.component';
-import { Subject } from 'rxjs';
 import { RepoUserService } from 'src/app/services/user/user.service';
-import { mockUserService } from 'src/app/utils/mocks';
+import { createUserServiceMock } from 'src/app/utils/mocks';
+
+@Component({ template: '' })
+class DummyComponent {}
 
 describe('FooterComponent', () => {
-  let component: FooterComponent;
   let fixture: ComponentFixture<FooterComponent>;
+  let component: FooterComponent;
   let router: Router;
-  let routerEventsSubject: Subject<any>;
-  let srv: RepoUserService;
 
   beforeEach(async () => {
-    routerEventsSubject = new Subject<any>();
-
-    TestBed.configureTestingModule({
-      declarations: [FooterComponent],
+    await TestBed.configureTestingModule({
+      imports: [FooterComponent],
       providers: [
-        {
-          provide: Router,
-          useValue: {
-            events: routerEventsSubject.asObservable(),
-          },
-        },
-        { provide: RepoUserService, useValue: mockUserService },
+        provideRouter([{ path: '**', component: DummyComponent }]),
+        { provide: RepoUserService, useValue: createUserServiceMock() },
       ],
     }).compileComponents();
-
     fixture = TestBed.createComponent(FooterComponent);
     component = fixture.componentInstance;
     router = TestBed.inject(Router);
+    fixture.detectChanges();
   });
 
-  it('should create', () => {
-    fixture.detectChanges();
-    expect(component).toBeTruthy();
+  it('tracks whether a user is logged in', () => {
+    expect(component.isLogged()).toBeTrue();
   });
 
-  it('should set currentPage when navigation ends', () => {
-    const event = new NavigationEnd(0, '/', '/');
-    routerEventsSubject.next(event);
+  it('tracks the current path, ignoring query params', async () => {
+    await router.navigateByUrl('/login?returnUrl=%2Fcart');
     fixture.detectChanges();
-    expect(component.currentPage).toEqual('/');
-
-    const event1 = new NavigationEnd(0, '/', '/');
-    routerEventsSubject.next(event1);
-    fixture.detectChanges();
-    expect(component.currentPage).toEqual('/');
-
-    const aboutEvent = new NavigationEnd(1, '/about', '/about');
-    routerEventsSubject.next(aboutEvent);
-    fixture.detectChanges();
-    expect(component.currentPage).toEqual('/about');
+    expect(component.currentPage()).toBe('/login');
+    expect(fixture.nativeElement.textContent).toContain('Register');
   });
 });

@@ -1,159 +1,100 @@
 import { TestBed } from '@angular/core/testing';
 import {
-  HttpClientTestingModule,
   HttpTestingController,
+  provideHttpClientTesting,
 } from '@angular/common/http/testing';
 import { RepoGameService } from './game.services.service';
-import { Game } from 'src/app/types/types';
-import { RepoUserService } from '../user/user.service';
-import {
-  gameBl,
-  id,
-  mockTestData,
-  reqFlush,
-  TestApiGameUrl,
-} from 'src/app/utils/mocks';
+import { gameBl, mockTestData, TestApiGameUrl } from 'src/app/utils/mocks';
+import { provideHttpClient } from '@angular/common/http';
 
-describe('GameServicesService', () => {
+describe('RepoGameService', () => {
   let service: RepoGameService;
   let httpMock: HttpTestingController;
-  let userSrv: RepoUserService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [RepoGameService, RepoUserService],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     });
     service = TestBed.inject(RepoGameService);
     httpMock = TestBed.inject(HttpTestingController);
-    userSrv = TestBed.inject(RepoUserService);
+    spyOn(console, 'error');
   });
 
-  afterEach(() => {
-    httpMock.verify();
-  });
+  afterEach(() => httpMock.verify());
 
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
 
-  describe('CreateGame', () => {
-    it('should create a new game', () => {
-      const game = {
-        id: 'test',
-        gameName: 'test',
-        category: 'MMO',
-        releaseDate: 'test',
-        description: 'test',
-        img: '',
-        price: 25,
-      } as Game;
-
-      service.createGame(game).subscribe((result) => {
-        expect(result).toBeDefined();
-      });
-
-      const req = httpMock.expectOne(TestApiGameUrl);
-      expect(req.request.method).toEqual('POST');
-      req.flush({ result: true });
-    });
+  it('createGame should POST the game and unwrap the created game', () => {
+    const created = { ...gameBl, id: 'new-id' };
+    service.createGame(gameBl).subscribe((g) => expect(g).toEqual(created));
+    const req = httpMock.expectOne(TestApiGameUrl);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(gameBl);
+    req.flush({ results: [created] });
   });
 
-  describe('loadGame', () => {
-    it('should load Game data', () => {
-      const id = 'test';
-
-      service.loadGame(id).subscribe((games) => {
-        expect(games.length).not.toBeNull();
-      });
-
-      const req = httpMock.expectOne(
-        `https://wog-backend.onrender.com/games/${id}`
-      );
-      expect(req.request.method).toEqual('GET');
-      req.flush(reqFlush);
-    });
-  });
-  describe('loadAllGame', () => {
-    it('should load Game data', () => {
-      const testData = reqFlush as unknown as Game[];
-
-      service.loadAllGame().subscribe((games) => {
-        expect(games).not.toBeNull();
-      });
-
-      const req = httpMock.expectOne(TestApiGameUrl);
-      expect(req.request.method).toEqual('GET');
-      req.flush({ results: testData });
-    });
+  it('loadGame should GET a single game by id', () => {
+    service.loadGame('test').subscribe((g) => expect(g).toEqual(gameBl));
+    const req = httpMock.expectOne(TestApiGameUrl + 'test');
+    expect(req.request.method).toBe('GET');
+    req.flush({ results: [gameBl] });
   });
 
-  describe('queryGame', () => {
-    it('should query Game data per category', () => {
-      const category = 'MMO';
-
-      service.queryGame(category).subscribe((games) => {
-        expect(games.length).not.toBeNull();
-      });
-
-      const req = httpMock.expectOne(TestApiGameUrl + `filter/${category}`);
-      expect(req.request.method).toEqual('GET');
-      req.flush({
-        results: [
-          {
-            id: 'test',
-            gameName: 'test',
-            category: 'MMO',
-            releaseDate: 'test',
-            description: 'test',
-            img: '',
-            price: 25,
-          },
-        ],
-      });
-    });
-    it('should query  all Game data', () => {
-      const category = 'all';
-
-      service.queryGame(category).subscribe((games) => {
-        expect(games.length).not.toBeNull();
-      });
-
-      const req = httpMock.expectOne(TestApiGameUrl);
-      expect(req.request.method).toEqual('GET');
-      req.flush(reqFlush);
-    });
+  it('loadAllGames should unwrap results[0] and cache it in games$', () => {
+    let cached: unknown;
+    service.games$.subscribe((g) => (cached = g));
+    service.loadAllGames().subscribe((g) => expect(g).toEqual(mockTestData));
+    const req = httpMock.expectOne(TestApiGameUrl);
+    expect(req.request.method).toBe('GET');
+    req.flush({ results: [mockTestData] });
+    expect(cached).toEqual(mockTestData);
   });
 
-  describe('updateGame', () => {
-    it('should update Game data', () => {
-      service.updateGame(id, gameBl).subscribe((games) => {
-        expect(games.length).not.toBeNull();
-      });
-
-      const req = httpMock.expectOne(TestApiGameUrl + id);
-      expect(req.request.method).toEqual('PUT');
-      req.flush(reqFlush);
-    });
-  });
-  describe('deleteGame', () => {
-    it('should delete Game data', () => {
-      const id = 'test';
-
-      service.deleteGame(id).subscribe((games) => {
-        expect(games.length).not.toBeNull();
-      });
-
-      const req = httpMock.expectOne(TestApiGameUrl + id);
-      expect(req.request.method).toEqual('DELETE');
-      req.flush(reqFlush);
-    });
+  it('cachedGame returns entries from the last catalog load', () => {
+    service.loadAllGames().subscribe();
+    httpMock.expectOne(TestApiGameUrl).flush({ results: [mockTestData] });
+    expect(service.cachedGame('test')).toEqual(mockTestData[0]);
+    expect(service.cachedGame('nope')).toBeUndefined();
   });
 
-  it('should return an observable of games', () => {
-    service._games$.next(mockTestData);
-    service.games$.subscribe((emittedGames) => {
-      expect(emittedGames).toEqual(mockTestData);
-    });
+  it('queryGame should hit the filter endpoint for a category', () => {
+    service.queryGame('MMO').subscribe((g) => expect(g).toEqual(mockTestData));
+    const req = httpMock.expectOne(TestApiGameUrl + 'filter/MMO');
+    expect(req.request.method).toBe('GET');
+    req.flush({ results: [mockTestData] });
+  });
+
+  it('queryGame should hit the list endpoint for "all" and ""', () => {
+    service.queryGame('all').subscribe();
+    service.queryGame('').subscribe();
+    const reqs = httpMock.match(TestApiGameUrl);
+    expect(reqs.length).toBe(2);
+    reqs.forEach((r) => r.flush({ results: [mockTestData] }));
+  });
+
+  it('updateGame should PUT to the game id', () => {
+    service.updateGame('test', gameBl).subscribe();
+    const req = httpMock.expectOne(TestApiGameUrl + 'test');
+    expect(req.request.method).toBe('PUT');
+    req.flush(gameBl);
+  });
+
+  it('deleteGame should DELETE the game id', () => {
+    service.deleteGame('test').subscribe();
+    const req = httpMock.expectOne(TestApiGameUrl + 'test');
+    expect(req.request.method).toBe('DELETE');
+    req.flush(null);
+  });
+
+  it('should rethrow HTTP errors', () => {
+    let failed = false;
+    service.loadGame('x').subscribe({ error: () => (failed = true) });
+    httpMock
+      .expectOne(TestApiGameUrl + 'x')
+      .flush('nope', { status: 500, statusText: 'Server Error' });
+    expect(failed).toBeTrue();
+    expect(console.error).toHaveBeenCalled();
   });
 });

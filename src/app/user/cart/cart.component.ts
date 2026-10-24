@@ -1,49 +1,57 @@
-import { Component, OnInit, NgZone, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { RepoUserService } from 'src/app/services/user/user.service';
 import { Game, User } from 'src/app/types/types';
+import { IconComponent } from 'src/app/shared/icon/icon.component';
+import { PriceComponent } from 'src/app/shared/price/price.component';
+import { CoverMorphDirective } from 'src/app/shared/motion/cover-morph';
+import { RouterLink } from '@angular/router';
+import { AsyncPipe, CurrencyPipe } from '@angular/common';
 
 @Component({
   selector: 'app-cart',
   templateUrl: './cart.component.html',
   styleUrls: ['./cart.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [IconComponent, PriceComponent, RouterLink, AsyncPipe, CurrencyPipe, CoverMorphDirective],
 })
 export class CartComponent implements OnInit {
   currentUser$!: Observable<User>;
 
   constructor(
     private readonly srv: RepoUserService,
-    private readonly zone: NgZone,
-    private readonly cdr: ChangeDetectorRef
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
     this.loadUser();
   }
 
-  getTotal(shopList: Game[] | undefined): number {
-    if (!shopList) return 0;
-    return shopList.reduce((sum, game) => sum + (game.price ?? 0), 0);
+  getTotal(cart: Game[] | undefined): number {
+    if (!cart) return 0;
+    return cart.reduce((sum, game) => sum + (game.price ?? 0), 0);
   }
 
   removeGame(game: Game): void {
     this.currentUser$.pipe(take(1)).subscribe((user: User) => {
-      const shopListIds = (user.shopList ?? []).map((g) => g.id as string);
-      const index = shopListIds.findIndex((id) => id === game.id);
+      const cartIds = (user.cart ?? []).map((g) => g.id as string);
+      const index = cartIds.findIndex((id) => id === game.id);
       if (index === -1) return;
 
-      shopListIds.splice(index, 1);
+      cartIds.splice(index, 1);
       const userId = user.id as string;
       this.srv
-        .updateUser(userId, { shopList: shopListIds } as Partial<Game>)
+        .updateUser(userId, { cart: cartIds })
         .pipe(take(1))
         .subscribe(() => {
-          this.zone.run(() => {
-            this.loadUser();
-            this.cdr.markForCheck();
-          });
+          this.loadUser();
+          this.cdr.markForCheck();
         });
     });
   }

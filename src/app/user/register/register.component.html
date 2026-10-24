@@ -1,69 +1,85 @@
-<section class="auth">
-  <div class="auth__panel panel">
-    <h1>{{ isUpdate ? 'Edit profile' : 'Create your account' }}</h1>
-    <p class="auth__subtitle" *ngIf="!isUpdate">Join the community and start building your library.</p>
+<div class="auth auth--top">
+  <app-auth-art class="auth__art" />
 
-    <form [formGroup]="newUser" (ngSubmit)="handleSubmit()">
-      <div class="form-field">
-        <label class="form-field__label" for="name">Name</label>
-        <input class="form-field__input" type="text" id="name"
-               formControlName="name" placeholder="Your name" />
-        <span class="form-field__error"
-              *ngIf="newUser.get('name')?.invalid && newUser.get('name')?.touched">
-          Name is required.
-        </span>
-      </div>
+  <section class="auth__panel">
+    <div>
+      <h1>{{ isUpdate ? 'Edit profile' : 'Create your account' }}</h1>
+      <p class="auth__lede">
+        {{ isUpdate ? 'Update how you appear to other players.' : 'Keep a cart, and list your own games in the store.' }}
+      </p>
+    </div>
 
-      <div class="form-field">
-        <label class="form-field__label" for="email">Email</label>
-        <input class="form-field__input" type="email" id="email"
-               formControlName="email" placeholder="you@example.com" />
-        <span class="form-field__error"
-              *ngIf="newUser.get('email')?.invalid && newUser.get('email')?.touched">
-          Please enter a valid email address.
-        </span>
-      </div>
-
-      <div class="form-field" *ngIf="!isUpdate">
-        <label class="form-field__label" for="password">Password</label>
-        <input class="form-field__input" type="password" id="password"
-               formControlName="password" placeholder="Min 6 characters" />
-        <span class="form-field__error"
-              *ngIf="newUser.get('password')?.invalid && newUser.get('password')?.touched">
-          Password must be at least 6 characters.
-        </span>
-      </div>
-
-      <div class="form-field">
-        <label class="form-field__label" for="img">Avatar</label>
-        <div class="avatar-upload">
-          <div class="avatar-preview" *ngIf="avatarPreview">
-            <img [src]="avatarPreview" alt="Avatar preview" />
-          </div>
-          <div class="avatar-placeholder" *ngIf="!avatarPreview">
-            <mat-icon>add_a_photo</mat-icon>
-            <span>Choose an image</span>
-          </div>
-          <input type="file" id="img" accept="image/*" (change)="saveImage($event)" />
+    <form class="auth__form" [formGroup]="newUser" (ngSubmit)="handleSubmit()" novalidate>
+      <div class="avatar">
+        <div class="avatar__preview">
+          @if (avatarPreview) {
+            <img [src]="avatarPreview" alt="Your avatar" />
+          } @else {
+            <app-icon name="user" />
+          }
+        </div>
+        <div class="field">
+          <label class="field__label" for="img">Avatar <span class="muted">(optional)</span></label>
+          <input class="field__control" type="file" id="img" accept="image/*" (change)="saveImage($event)" />
         </div>
       </div>
 
-      <button class="btn btn--primary auth__submit" type="submit"
-              [disabled]="newUser.invalid || isSubmitting">
-        <span *ngIf="!isSubmitting">{{ isUpdate ? 'Save changes' : 'Create account' }}</span>
-        <span *ngIf="isSubmitting">{{ isUpdate ? 'Saving...' : 'Creating...' }}</span>
+      <div class="field">
+        <label class="field__label" for="name">Name</label>
+        <input class="field__control" type="text" id="name" formControlName="name" autocomplete="name"
+          aria-describedby="name-error" />
+        @if (newUser.get('name')?.invalid && newUser.get('name')?.touched) {
+          <span class="field__error" id="name-error">Enter your name.</span>
+        }
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="email">Email</label>
+        <input class="field__control" type="email" id="email" formControlName="email"
+          placeholder="you@example.com" autocomplete="email" aria-describedby="email-error" />
+        @if (newUser.get('email')?.invalid && newUser.get('email')?.touched) {
+          <span class="field__error" id="email-error">Enter a valid email address.</span>
+        }
+      </div>
+
+      @if (!isUpdate) {
+        <div class="field">
+          <label class="field__label" for="password">Password</label>
+          <input class="field__control" type="password" id="password" formControlName="password"
+            autocomplete="new-password" aria-describedby="password-hint password-error" />
+          <span class="field__hint" id="password-hint">At least 8 characters.</span>
+          @if (newUser.get('password')?.invalid && newUser.get('password')?.touched) {
+            <span class="field__error" id="password-error">Use at least 8 characters.</span>
+          }
+        </div>
+      }
+
+      <button class="btn btn--primary btn--lg btn--block" type="submit" [disabled]="isSubmitting"
+        [attr.aria-busy]="isSubmitting">
+        @if (isSubmitting) {
+          {{ isUpdate ? 'Saving...' : 'Creating account...' }}
+        } @else {
+          {{ isUpdate ? 'Save changes' : 'Create account' }}
+        }
       </button>
 
-      <p class="auth__status auth__status--success" *ngIf="isSuccess">
-        {{ isUpdate ? 'Profile updated!' : 'Account created!' }}
-      </p>
-      <p class="auth__status auth__status--error" *ngIf="isError">
-        {{ isUpdate ? 'Update failed. Please try again.' : 'Registration failed. Please try again.' }}
-      </p>
+      @if (isSuccess) {
+        <p class="notice notice--success" role="status">
+          {{ isUpdate ? 'Profile saved.' : 'Account created. Sign in to continue.' }}
+        </p>
+      }
+      @if (isError) {
+        <p class="notice notice--error" role="alert">
+          {{ isUpdate ? "Your changes weren't saved." : "The account wasn't created. That email may already be registered." }}
+        </p>
+      }
     </form>
 
-    <p class="auth__switch" *ngIf="!isUpdate">
-      Already have an account? <a routerLink="/login">Login</a>
-    </p>
-  </div>
-</section>
+    @if (!isUpdate) {
+      <p class="auth__switch">
+        Already have an account? <a class="text-link" routerLink="/login">Sign in</a>.
+        Rather not sign up? <a class="text-link" routerLink="/login">Try the demo</a>.
+      </p>
+    }
+  </section>
+</div>

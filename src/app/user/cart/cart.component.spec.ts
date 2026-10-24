@@ -1,55 +1,60 @@
-import { HttpClientModule } from '@angular/common/http';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
-import { RepoGameService } from 'src/app/services/game/game.services.service';
+import { provideRouter } from '@angular/router';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RepoUserService } from 'src/app/services/user/user.service';
 import {
-  mockUserService,
-  mockGameService,
+  createUserServiceMock,
   mockGame,
+  mockGame1,
   mockUser,
 } from 'src/app/utils/mocks';
-
 import { CartComponent } from './cart.component';
 
 describe('CartComponent', () => {
-  let component: CartComponent;
   let fixture: ComponentFixture<CartComponent>;
-  let srv: RepoUserService;
-  let gamesrv: RepoGameService;
+  let component: CartComponent;
+  let srv: ReturnType<typeof createUserServiceMock>;
 
   beforeEach(async () => {
+    srv = createUserServiceMock();
     await TestBed.configureTestingModule({
-      declarations: [CartComponent],
+      imports: [CartComponent],
       providers: [
-        { provide: RepoUserService, useValue: mockUserService },
-        { provide: RepoGameService, useValue: mockGameService },
+        provideRouter([]),
+        { provide: RepoUserService, useValue: srv },
       ],
-      imports: [HttpClientModule],
     }).compileComponents();
-
     fixture = TestBed.createComponent(CartComponent);
     component = fixture.componentInstance;
-    srv = TestBed.inject(RepoUserService);
-    gamesrv = TestBed.inject(RepoGameService);
     fixture.detectChanges();
-    component.currentUser$ = of(mockUser);
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('loads the logged user cart', () => {
+    expect(srv.getCurrentUser).toHaveBeenCalled();
+    expect(fixture.nativeElement.textContent).toContain(mockGame.gameName);
   });
 
-  describe('Given the removeCart method', () => {
-    it('Then it should call updatUser with the updated cart', () => {
-      srv.currentUser$.next(mockUser);
-      const spyUpUser = spyOn(srv, 'updateUser').and.returnValue(of(mockUser));
-      const spyZone = spyOn(component.zone, 'run').and.callThrough();
+  it('computes the total', () => {
+    expect(component.getTotal(undefined)).toBe(0);
+    expect(component.getTotal([mockGame, mockGame1])).toBe(40);
+  });
 
-      component.removeGame(mockGame);
-
-      expect(spyUpUser).toHaveBeenCalled();
-      expect(spyZone).toHaveBeenCalled();
+  it('removes a game from the shop list', () => {
+    component.removeGame(mockGame);
+    expect(srv.updateUser).toHaveBeenCalledWith(mockUser.id as string, {
+      cart: [mockGame1.id],
     });
+  });
+
+  it('shows the 2D empty state with no video loop', () => {
+    srv.getCurrentUser.and.returnValue(of({ ...mockUser, cart: [] }));
+    component.ngOnInit();
+    fixture.detectChanges();
+    const empty = (fixture.nativeElement as HTMLElement).querySelector('.empty');
+    expect(empty).toBeTruthy();
+    expect(empty!.querySelector('h2')?.textContent).toContain('Your cart is empty');
+    expect(empty!.querySelector('a[href="/games"]')).toBeTruthy();
+    expect(empty!.querySelector('video')).toBeNull();
+    expect(empty!.querySelector('app-loop-video')).toBeNull();
   });
 });

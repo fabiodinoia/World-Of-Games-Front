@@ -1,53 +1,60 @@
-<section class="cart panel" *ngIf="currentUser$ | async as user">
-  <header class="cart__header">
-    <p class="eyebrow">Your basket</p>
-    <h2>My Cart</h2>
-  </header>
-
-  <!-- Cart items -->
-  <div class="cart__body" *ngIf="user.shopList?.length; else emptyCart">
-    <ul class="cart__list">
-      <li class="cart__item" *ngFor="let game of user.shopList">
-        <div class="cart__item-info">
-          <img class="cart__item-img" [src]="game.img" [alt]="game.gameName" loading="lazy">
-          <div class="cart__item-details">
-            <p class="cart__item-name">{{ game.gameName }}</p>
-            <span class="badge">{{ game.category }}</span>
-            <p class="cart__item-price">{{ game.price | currency:'EUR' }}</p>
-          </div>
-        </div>
-        <button type="button" class="btn btn--ghost btn--sm cart__remove" (click)="removeGame(game)">
-          <mat-icon>close</mat-icon>
-          Remove
-        </button>
-      </li>
-    </ul>
-
-    <!-- Order summary -->
-    <aside class="cart__summary">
-      <h3>Order Summary</h3>
-      <div class="cart__summary-row">
-        <span>Items</span>
-        <span>{{ user.shopList?.length }}</span>
+<div class="page">
+  @if (currentUser$ | async; as user) {
+    <header class="page-head">
+      <div>
+        <h1>Cart</h1>
+        <p class="page-head__lede">
+          @if (user.cart?.length === 1) { 1 game } @else { {{ user.cart?.length ?? 0 }} games }
+        </p>
       </div>
-      <div class="cart__summary-row cart__summary-total">
-        <span>Total</span>
-        <span>{{ getTotal(user.shopList) | currency:'EUR' }}</span>
-      </div>
-      <button class="btn btn--primary cart__checkout" type="button" disabled>
-        Checkout
-      </button>
-      <p class="cart__checkout-note">Checkout is coming soon.</p>
-    </aside>
-  </div>
+    </header>
 
-  <!-- Empty state -->
-  <ng-template #emptyCart>
-    <div class="cart__empty">
-      <mat-icon class="cart__empty-icon">shopping_cart</mat-icon>
-      <h3>Your cart is empty</h3>
-      <p>Browse our collection and find something you love.</p>
-      <a class="btn btn--primary" routerLink="/games">Browse Games</a>
+    @if (user.cart?.length) {
+      <div class="cart">
+        <ul class="cart__list">
+          @for (game of user.cart; track $index) {
+            <li class="line">
+              <a class="line__cover cover-link" [routerLink]="['/games', game.id]" tabindex="-1" aria-hidden="true" appCoverMorph>
+                <div class="cover"><img [src]="game.img" alt="" loading="lazy" width="96" height="128"></div>
+              </a>
+              <div class="line__info">
+                <a class="line__name" [routerLink]="['/games', game.id]">{{ game.gameName }}</a>
+                <span class="genre">{{ game.category }}</span>
+              </div>
+              <app-price class="line__price" [value]="game.price" />
+              <button type="button" class="btn btn--ghost btn--sm line__remove" (click)="removeGame(game)"
+                [attr.aria-label]="'Remove ' + game.gameName + ' from cart'">
+                <app-icon name="close" />
+                <span class="line__remove-label">Remove</span>
+              </button>
+            </li>
+          }
+        </ul>
+
+        <aside class="summary sheet" aria-labelledby="summary-title">
+          <h2 id="summary-title" class="summary__title">Order summary</h2>
+          <dl class="summary__rows">
+            <div><dt>Games</dt><dd>{{ user.cart?.length }}</dd></div>
+            <div class="summary__total"><dt>Total</dt><dd>{{ getTotal(user.cart) | currency: 'EUR' }}</dd></div>
+          </dl>
+          <button class="btn btn--primary btn--lg btn--block" type="button" disabled aria-describedby="checkout-note">
+            Checkout
+          </button>
+          <p class="summary__note" id="checkout-note">Payments aren't part of this demo, so checkout is switched off.</p>
+          <a class="text-link summary__more" routerLink="/games">Keep browsing</a>
+        </aside>
+      </div>
+    } @else {
+      <div class="empty">
+        <h2>Your cart is empty</h2>
+        <p>Find something to play: every game page has an Add to cart button.</p>
+        <a class="btn btn--primary" routerLink="/games">Browse games</a>
+      </div>
+    }
+  } @else {
+    <div class="page-head" aria-busy="true">
+      <div class="skeleton" style="height: 3rem; width: 160px"></div>
     </div>
-  </ng-template>
-</section>
+    <div class="skeleton" style="height: 128px; max-width: 760px"></div>
+  }
+</div>

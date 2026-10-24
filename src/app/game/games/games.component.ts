@@ -1,14 +1,29 @@
-import { Component, OnInit, OnDestroy, NgZone, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { Subject } from 'rxjs';
-import { take, takeUntil } from 'rxjs/operators';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { RepoGameService } from 'src/app/services/game/game.services.service';
 import { RepoUserService } from 'src/app/services/user/user.service';
-import { Game, gameCategory } from 'src/app/types/types';
+import { IconComponent } from 'src/app/shared/icon/icon.component';
+import { PriceComponent } from 'src/app/shared/price/price.component';
+import { CartFlightService } from 'src/app/shared/motion/cart-flight.service';
+import { CoverMorphDirective } from 'src/app/shared/motion/cover-morph';
+import { RevealDirective } from 'src/app/shared/motion/reveal';
+import { GAME_CATEGORIES, gameCategory } from 'src/app/types/categories';
+import { Game } from 'src/app/types/types';
+
+type CategoryFilter = gameCategory | 'all';
 
 interface CategoryOption {
   label: string;
-  value: gameCategory | 'all';
+  value: CategoryFilter;
 }
 
 @Component({
@@ -16,94 +31,98 @@ interface CategoryOption {
   templateUrl: './games.component.html',
   styleUrls: ['./games.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink, IconComponent, PriceComponent, CoverMorphDirective, RevealDirective],
 })
-export class GamesComponent implements OnInit, OnDestroy {
-  games: Game[] = [];
-  selectedCategory: gameCategory | 'all' = 'all';
-  isLoading = true;
-  private readonly destroy$ = new Subject<void>();
+export class GamesComponent implements OnInit {
+  private readonly userSrv = inject(RepoUserService);
+  private readonly gameSrv = inject(RepoGameService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly cartFx = inject(CartFlightService);
+
+  readonly games = signal<Game[]>([]);
+  readonly selectedCategory = signal<CategoryFilter>('all');
+  readonly isLoading = signal(true);
+  readonly loadFailed = signal(false);
+  readonly skeletons = Array.from({ length: 10 }, (_, i) => i);
+  private lastLoaded: CategoryFilter | null = null;
 
   readonly categories: CategoryOption[] = [
     { label: 'All', value: 'all' },
-    { label: 'MOBA', value: 'MOBA' },
-    { label: 'RPG', value: 'RPG' },
-    { label: 'MMO', value: 'MMO' },
-    { label: 'FPS', value: 'FPS' },
-    { label: 'Action', value: 'Action' },
+    ...GAME_CATEGORIES.map((value) => ({ label: value, value })),
   ];
 
-  constructor(
-    private readonly srv: RepoUserService,
-    private readonly router: Router,
-    private readonly gamesrv: RepoGameService,
-    private readonly zone: NgZone,
-    private readonly cdr: ChangeDetectorRef,
-    private readonly route: ActivatedRoute,
-  ) {}
+  readonly heading = computed(() =>
+    this.selectedCategory() === 'all' ? 'All games' : `${this.selectedCategory()} games`,
+  );
+
+  readonly resultLabel = computed(() => {
+    const n = this.games().length;
+    return n === 1 ? '1 game' : `${n} games`;
+  });
 
   ngOnInit(): void {
-    const categoryParam = this.route.snapshot.queryParamMap.get('category');
-    if (categoryParam && this.categories.some((c) => c.value === categoryParam)) {
-      this.selectedCategory = categoryParam as gameCategory;
-    }
-    this.loadGames();
+    // The URL is the source of truth, so genre links from the header, footer
+    // or home page work even while the catalog is already open.
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params) => {
+        const param = params.get('category');
+        const match = this.categories.find((c) => c.value === param);
+        const category = match?.value ?? 'all';
+        if (category === this.lastLoaded) return;
+        this.selectedCategory.set(category);
+        this.loadGames();
+      });
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
-  onCategorySelect(): void {
-    this.isLoading = true;
-    this.cdr.markForCheck();
+  selectCategory(category: CategoryFilter): void {
+    this.selectedCategory.set(category);
     this.loadGames();
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { category: category === 'all' ? null : category },
+      replaceUrl: true,
+    });
   }
 
   loadGames(): void {
-    this.gamesrv
-      .queryGame(this.selectedCategory)
-      .pipe(takeUntil(this.destroy$))
+    this.lastLoaded = this.selectedCategory();
+    this.isLoading.set(true);
+    this.loadFailed.set(false);
+    this.gameSrv
+      .queryGame(this.selectedCategory())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (games) => {
-          this.zone.run(() => {
-            this.games = games;
-            this.isLoading = false;
-            this.cdr.markForCheck();
-          });
+          this.games.set(games);
+          this.isLoading.set(false);
         },
         error: () => {
-          this.isLoading = false;
-          this.cdr.markForCheck();
+          this.games.set([]);
+          this.isLoading.set(false);
+          this.loadFailed.set(true);
         },
       });
   }
 
-  addCart(game: Game): void {
-    const userId = this.srv.userLogged$.value.id;
+  addCart(game: Game, event?: Event): void {
+    const userId = this.userSrv.userLogged$.value.id;
     if (!userId) {
-      this.router.navigateByUrl('/login');
+      this.router.navigate(['/login'], {
+        queryParams: { returnUrl: this.router.url },
+      });
       return;
     }
 
-    this.srv
-      .getCurrentUser(userId)
-      .pipe(take(1))
-      .subscribe((user) => {
-        const shopListIds = (user.shopList ?? []).map((g) => g.id as string);
-        shopListIds.push(game.id as string);
-        this.srv
-          .updateUser(userId, { shopList: shopListIds } as Partial<Game>)
-          .pipe(take(1))
-          .subscribe(() => {
-            this.zone.run(() => {
-              this.router.navigateByUrl('/cart');
-            });
-          });
-      });
-  }
+    const button = event?.currentTarget as HTMLElement | null | undefined;
+    this.cartFx.press(button);
+    const cover = button?.closest('.game-card')?.querySelector<HTMLElement>('.cover img');
 
-  trackByGameId(_index: number, game: Game): string {
-    return game.id ?? '';
+    this.userSrv.addToCart(game.id as string).subscribe(() => {
+      // Stay in the store; the cover lands in the header cart, whose count is the feedback.
+      this.cartFx.fly(cover);
+    });
   }
 }

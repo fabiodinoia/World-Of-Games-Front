@@ -1,23 +1,33 @@
-import { Component, OnInit, OnDestroy, inject, NgZone, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  inject,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+} from '@angular/core';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  FormsModule,
+  ReactiveFormsModule,
+} from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { Observable, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { RepoUserService } from 'src/app/services/user/user.service';
 import { User } from 'src/app/types/types';
-import {
-  Storage,
-  getDownloadURL,
-  ref,
-  StorageReference,
-  uploadBytes,
-} from '@angular/fire/storage';
+import { ImageUploadService } from 'src/app/services/image/image-upload.service';
+import { AuthArtComponent } from 'src/app/shared/auth-art/auth-art.component';
+import { IconComponent } from 'src/app/shared/icon/icon.component';
 
 @Component({
   selector: 'app-register',
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [FormsModule, ReactiveFormsModule, RouterLink, AuthArtComponent, IconComponent],
 })
 export class RegisterComponent implements OnInit, OnDestroy {
   newUser: FormGroup;
@@ -27,7 +37,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
   isSubmitting = false;
   avatarPreview: string | null = null;
   userToUpdate: User | undefined;
-  private readonly storage = inject(Storage);
+  private readonly images = inject(ImageUploadService);
   private userImg = new File([], '');
   private readonly destroy$ = new Subject<void>();
 
@@ -35,13 +45,12 @@ export class RegisterComponent implements OnInit, OnDestroy {
     private readonly form: FormBuilder,
     private readonly srv: RepoUserService,
     private readonly router: Router,
-    private readonly zone: NgZone,
-    private readonly cdr: ChangeDetectorRef
+    private readonly cdr: ChangeDetectorRef,
   ) {
     this.newUser = form.group({
       name: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
+      password: ['', [Validators.required, Validators.minLength(8)]],
       img: '',
     });
   }
@@ -97,23 +106,31 @@ export class RegisterComponent implements OnInit, OnDestroy {
     let observable: Observable<User>;
 
     if (this.userImg.name) {
-      const avatarRef = ref(this.storage, `avatars/${this.newUser.value.email}`);
-      await this.uploadImage(avatarRef, this.userImg);
-      avatar = await this.getImage(avatarRef);
+      try {
+        avatar = await this.images.upload(
+          `avatars/${this.newUser.value.email}`,
+          this.userImg,
+        );
+      } catch {
+        this.showError();
+        return;
+      }
     }
 
-    const sendNewUser: User = {
+    const sendNewUser: Pick<User, 'name' | 'email' | 'password' | 'img'> = {
       name: this.newUser.value.name,
       email: this.newUser.value.email,
       password: this.newUser.value.password,
-      img: avatar,
+      img: avatar || this.userToUpdate?.img || '',
     };
 
     if (this.isUpdate) {
+      const { password, ...profile } = sendNewUser;
+      // Blank password on edit means "keep the current one".
       observable = this.srv.updateUser(
         this.userToUpdate!.id as string,
-        sendNewUser
-      ) as Observable<User>;
+        password ? { ...profile, password } : profile,
+      );
     } else {
       observable = this.srv.registerUser(sendNewUser);
     }
@@ -125,35 +142,27 @@ export class RegisterComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
         setTimeout(() => {
           this.isSuccess = false;
-          this.zone.run(() => {
-            if (this.isUpdate) {
-              this.router.navigate([`/user/${this.userToUpdate!.id}`]);
-            } else {
-              this.router.navigate(['/login']);
-            }
-          });
+          if (this.isUpdate) {
+            this.router.navigate([`/user/${this.userToUpdate!.id}`]);
+          } else {
+            this.router.navigate(['/login']);
+          }
         }, 1500);
       },
-      error: () => {
-        this.isSubmitting = false;
-        this.isError = true;
-        this.cdr.markForCheck();
-        setTimeout(() => {
-          this.isError = false;
-          this.cdr.markForCheck();
-        }, 3000);
-      },
+      error: () => this.showError(),
       complete: () => {
         this.newUser.reset();
       },
     });
   }
 
-  private async uploadImage(storage: StorageReference, avatar: File): Promise<void> {
-    await uploadBytes(storage, avatar);
-  }
-
-  private async getImage(storage: StorageReference): Promise<string> {
-    return getDownloadURL(storage);
+  private showError(): void {
+    this.isSubmitting = false;
+    this.isError = true;
+    this.cdr.markForCheck();
+    setTimeout(() => {
+      this.isError = false;
+      this.cdr.markForCheck();
+    }, 3000);
   }
 }

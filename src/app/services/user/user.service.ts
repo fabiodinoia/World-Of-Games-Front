@@ -1,11 +1,19 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, catchError, map, Observable, throwError } from 'rxjs';
+import {
+  BehaviorSubject,
+  catchError,
+  map,
+  Observable,
+  switchMap,
+  take,
+  throwError,
+} from 'rxjs';
 import {
   ServerCompleteUserResponse,
   ServerLoginResponse,
 } from 'src/app/types/server.response';
-import { LoggedUser, Login, User } from 'src/app/types/types';
+import { LoggedUser, Login, User, UserUpdate } from 'src/app/types/types';
 import { environment } from 'src/environments/environment';
 import * as jose from 'jose';
 
@@ -30,25 +38,27 @@ export class RepoUserService {
       catchError((error) => {
         console.error('Registration failed:', error);
         return throwError(() => error);
-      })
+      }),
     );
   }
 
   loginUser(user: Login): Observable<string> {
-    return this.http.post<ServerLoginResponse>(`${this.apiUrl}/login`, user).pipe(
-      map((data) => {
-        const token = data.results.token;
-        this.token$.next(token);
-        localStorage.setItem('Token', token);
-        const userInfo = jose.decodeJwt(token) as unknown as LoggedUser;
-        this.userLogged$.next(userInfo);
-        return token;
-      }),
-      catchError((error) => {
-        console.error('Login failed:', error);
-        return throwError(() => error);
-      })
-    );
+    return this.http
+      .post<ServerLoginResponse>(`${this.apiUrl}/login`, user)
+      .pipe(
+        map((data) => {
+          const token = data.results.token;
+          this.token$.next(token);
+          localStorage.setItem('Token', token);
+          const userInfo = jose.decodeJwt(token) as unknown as LoggedUser;
+          this.userLogged$.next(userInfo);
+          return token;
+        }),
+        catchError((error) => {
+          console.error('Login failed:', error);
+          return throwError(() => error);
+        }),
+      );
   }
 
   logout(): void {
@@ -82,16 +92,34 @@ export class RepoUserService {
         catchError((error) => {
           console.error('Failed to fetch user:', error);
           return throwError(() => error);
-        })
+        }),
       );
   }
 
-  updateUser(id: string, user: Partial<User>): Observable<User> {
+  updateUser(id: string, user: UserUpdate): Observable<User> {
     return this.http.put<User>(`${this.apiUrl}/${id}`, user).pipe(
       catchError((error) => {
         console.error('Failed to update user:', error);
         return throwError(() => error);
-      })
+      }),
+    );
+  }
+
+  /** Appends a game to the logged-in user's cart (the API only accepts own-id updates). */
+  addToCart(gameId: string): Observable<User> {
+    const userId = this.userLogged$.value.id;
+    return this.getCurrentUser(userId).pipe(
+      take(1),
+      switchMap((user) =>
+        this.updateUser(userId, {
+          cart: [
+            ...(user.cart ?? []).map((g) => g.id as string),
+            gameId,
+          ],
+        }),
+      ),
+      // Re-fetch so currentUser$ (header badge) reflects the new cart.
+      switchMap(() => this.getCurrentUser(userId)),
     );
   }
 
@@ -100,7 +128,7 @@ export class RepoUserService {
       catchError((error) => {
         console.error('Failed to delete user:', error);
         return throwError(() => error);
-      })
+      }),
     );
   }
 }

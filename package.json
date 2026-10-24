@@ -1,42 +1,47 @@
 {
-  "name": "WOG",
+  "name": "world-of-games-front",
   "version": "0.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.18.0"
+  },
   "scripts": {
     "ng": "ng",
+    "config": "node src/environments/set-env.mts",
+    "prestart": "npm run config",
     "start": "ng serve",
+    "prebuild": "npm run config",
     "build": "ng build",
+    "prewatch": "npm run config",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test --code-coverage",
-    "test:prod": "ng test --code-coverage --watch=false --browsers=ChromeHeadless",
-    "config": "ts-node src/environments/set-env.ts"
+    "pretest": "npm run config",
+    "test": "ng test",
+    "pretest:ci": "npm run config",
+    "test:ci": "ng test --watch=false --browsers=ChromeHeadless --code-coverage",
+    "test:prod": "npm run test:ci"
   },
-  "private": true,
   "dependencies": {
-    "@angular/animations": "^15.2.0",
-    "@angular/cdk": "^15.2.4",
-    "@angular/common": "^15.2.0",
-    "@angular/compiler": "^15.2.0",
-    "@angular/core": "^15.2.0",
-    "@angular/forms": "^15.2.0",
-    "@angular/material": "^15.2.4",
-    "@angular/platform-browser": "^15.2.0",
-    "@angular/platform-browser-dynamic": "^15.2.0",
-    "@angular/router": "^15.2.0",
-    "gsap": "^3.13.0",
+    "@angular/common": "^21.2.25",
+    "@angular/compiler": "^21.2.25",
+    "@angular/core": "^21.2.25",
+    "@angular/forms": "^21.2.25",
+    "@angular/platform-browser": "^21.2.25",
+    "@angular/router": "^21.2.25",
+    "@fontsource-variable/big-shoulders-display": "^5.3.0",
+    "@fontsource-variable/figtree": "^5.3.0",
+    "@types/three": "^0.186.0",
+    "firebase": "^12.19.0",
     "jose": "^4.13.1",
-    "karma-mocha-reporter": "^2.2.5",
     "rxjs": "~7.8.0",
+    "three": "^0.186.1",
     "tslib": "^2.3.0",
-    "zone.js": "~0.12.0"
+    "zone.js": "~0.15.1"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^15.2.2",
-    "@angular/cli": "~15.2.2",
-    "@angular/compiler-cli": "^15.2.0",
-    "@angular/fire": "^7.5.0",
+    "@angular/build": "^21.2.24",
+    "@angular/cli": "~21.2.24",
+    "@angular/compiler-cli": "^21.2.25",
     "@types/jasmine": "~4.3.0",
-    "dotenv": "^16.0.3",
-    "firebase": "^9.18.0",
     "husky": "^8.0.0",
     "jasmine-core": "~4.5.0",
     "karma": "~6.4.0",
@@ -44,7 +49,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.0.0",
-    "ts-node": "^10.9.1",
-    "typescript": "~4.9.4"
+    "karma-mocha-reporter": "^2.2.5",
+    "typescript": "~5.9.3"
   }
 }

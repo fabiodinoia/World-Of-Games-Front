@@ -3,172 +3,110 @@
 }
 
 .profile {
-  width: 100%;
   display: flex;
-  flex-direction: column;
-  gap: var(--space-xl);
-}
-
-/* ── Profile card ── */
-.profile__header {
-  display: flex;
-  gap: var(--space-xl);
+  flex-wrap: wrap;
   align-items: center;
+  gap: var(--space-5);
+  padding-block: var(--space-6);
+  border-bottom: 1px solid rgb(255 255 255 / 6%);
 }
 
-.profile__avatar img {
-  width: 110px;
-  height: 110px;
+.profile__avatar {
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  overflow: hidden;
   border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid rgba(84, 173, 255, 0.2);
-}
+  background: var(--dusk);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 2.5rem;
+  text-transform: uppercase;
 
-.profile__info {
-  flex: 1;
-
-  h1 {
-    margin: 0;
-    font-size: var(--heading-2);
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 }
 
-.profile__email,
-.profile__address {
-  margin: var(--space-xs) 0 0;
-  color: var(--muted-text);
-  font-size: var(--font-size-sm);
+.profile__id {
+  flex: 1;
+  min-width: 0;
+
+  h1 {
+    overflow-wrap: anywhere;
+  }
+
+  p {
+    margin-top: var(--space-2);
+    overflow-wrap: anywhere;
+  }
 }
 
 .profile__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-sm);
-  margin-top: var(--space-lg);
-  padding-top: var(--space-lg);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  gap: var(--space-2);
 }
 
-.profile__delete {
-  color: var(--muted-text);
-  margin-left: auto;
+.listings {
+  padding-top: var(--space-6);
 }
 
-/* ── My games section ── */
-.profile__games-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--space-lg);
-
-  h2 {
-    margin: 0;
-    font-size: var(--heading-2);
-  }
-
-  .btn mat-icon {
-    font-size: 18px;
-    width: 18px;
-    height: 18px;
-  }
-}
-
-.profile__game-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-md);
-}
-
-.profile__game-item {
+.listings__head {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-md);
   align-items: center;
   justify-content: space-between;
-  background: var(--card-color);
-  border-radius: var(--radius-lg);
-  padding: var(--space-md);
-  box-shadow: var(--shadow-card);
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
 }
 
-.profile__game-info {
+.listings__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr));
+  gap: var(--space-6) var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.listing {
   display: flex;
-  flex: 1;
-  gap: var(--space-md);
-  align-items: center;
+  flex-direction: column;
+  gap: var(--space-3);
   min-width: 0;
 }
 
-.profile__game-img {
-  width: 80px;
-  height: 80px;
-  border-radius: var(--radius-md);
-  object-fit: cover;
-  flex-shrink: 0;
-}
-
-.profile__game-details {
+.listing__meta {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
-  min-width: 0;
-}
-
-.profile__game-name {
-  font-size: var(--font-size-lg);
-  font-weight: 600;
-  margin: 0;
-}
-
-.profile__game-price {
-  margin: 0;
-  font-weight: 700;
-  color: var(--accent-secondary);
-}
-
-.profile__game-actions {
-  display: flex;
-  gap: var(--space-sm);
-}
-
-/* ── Empty state ── */
-.profile__empty {
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: var(--space-md);
-  padding: clamp(2rem, 4vw, 4rem) 0;
-  text-align: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
 
-  mat-icon {
-    font-size: 48px;
-    width: 48px;
-    height: 48px;
-    color: var(--muted-text);
-    opacity: 0.3;
-  }
+.listing__actions {
+  display: flex;
+  gap: var(--space-2);
 
-  p {
-    margin: 0;
-    color: var(--muted-text);
+  .btn:first-child {
+    flex: 1;
   }
 }
 
-/* ── Responsive ── */
-@media (max-width: 640px) {
-  .profile__header {
-    flex-direction: column;
-    text-align: center;
-  }
+.danger {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin-top: var(--space-8);
+  padding-top: var(--space-5);
+  border-top: 1px solid rgb(255 255 255 / 6%);
+}
 
-  .profile__actions {
-    justify-content: center;
-  }
-
-  .profile__delete {
-    margin-left: 0;
-  }
+.danger__title {
+  font-size: var(--text-xl);
 }

@@ -1,34 +1,38 @@
-import { Injectable } from '@angular/core';
-import {
-  HttpEvent,
-  HttpHandler,
-  HttpInterceptor,
-  HttpRequest,
-} from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { catchError, throwError } from 'rxjs';
 import { RepoUserService } from '../services/user/user.service';
 import { environment } from 'src/environments/environment';
 
-@Injectable()
-export class AuthInterceptor implements HttpInterceptor {
-  constructor(private readonly srv: RepoUserService) {}
+/** Backend status for a missing/expired/invalid token. */
+export const INVALID_TOKEN_STATUS = 498;
 
-  intercept(
-    req: HttpRequest<unknown>,
-    next: HttpHandler
-  ): Observable<HttpEvent<unknown>> {
-    if (!req.url.startsWith(environment.apiUrl)) {
-      return next.handle(req);
-    }
-
-    const token = this.srv.token$.value;
-    if (!token) {
-      return next.handle(req);
-    }
-
-    const authReq = req.clone({
-      setHeaders: { Authorization: `Bearer ${token}` },
-    });
-    return next.handle(authReq);
+/**
+ * Attaches the bearer token to calls to our own API (never to third parties).
+ * If the API rejects the token as invalid/expired, the stale session is
+ * cleared so the UI falls back to the logged-out experience.
+ */
+export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  if (!req.url.startsWith(environment.apiUrl)) {
+    return next(req);
   }
-}
+
+  const users = inject(RepoUserService);
+  const token = users.token$.value;
+  const authReq = token
+    ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
+    : req;
+
+  return next(authReq).pipe(
+    catchError((error: unknown) => {
+      if (
+        token &&
+        error instanceof HttpErrorResponse &&
+        error.status === INVALID_TOKEN_STATUS
+      ) {
+        users.logout();
+      }
+      return throwError(() => error);
+    }),
+  );
+};

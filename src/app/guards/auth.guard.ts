@@ -1,19 +1,13 @@
-import { Injectable } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
+import { inject } from '@angular/core';
+import { CanActivateFn, Router } from '@angular/router';
 import { RepoUserService } from '../services/user/user.service';
 
-@Injectable({ providedIn: 'root' })
-export class AuthGuard implements CanActivate {
-  constructor(
-    private readonly srv: RepoUserService,
-    private readonly router: Router
-  ) {}
-
-  canActivate(): boolean {
-    if (this.srv.token$.value) {
-      return true;
-    }
-    this.router.navigate(['/login']);
-    return false;
+/** Lets signed-in users through; otherwise redirects to /login?returnUrl=… */
+export const authGuard: CanActivateFn = (_route, state) => {
+  if (inject(RepoUserService).token$.value) {
+    return true;
   }
-}
+  return inject(Router).createUrlTree(['/login'], {
+    queryParams: { returnUrl: state.url },
+  });
+};

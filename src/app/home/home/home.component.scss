@@ -1,452 +1,260 @@
 :host {
-  display: flex;
-  flex-direction: column;
-  gap: clamp(3rem, 5vw, 5rem);
-  padding: clamp(2rem, 4vw, 3rem) clamp(1rem, 3vw, 2rem) clamp(4rem, 6vw, 6rem);
-  align-items: stretch;
-  --cube-size: min(280px, 60vw);
-  --cube-depth: calc(var(--cube-size) / 2);
+  display: block;
 }
 
-.cover-experience {
-  width: 100%;
-  min-height: 130vh;
-}
-
-.cover-experience__stage {
-  width: 100%;
-  position: sticky;
-  top: clamp(2rem, 10vh, 5rem);
-  height: calc(100vh - 80px);
-  border-radius: var(--radius-xl);
-  background: radial-gradient(circle at top, rgba(10, 26, 47, 0.95), rgba(5, 6, 12, 0.95));
-  padding: clamp(2rem, 4vw, 4rem);
-  box-shadow: var(--shadow-elevated);
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  justify-content: center;
-  align-items: center;
-  overflow: visible;
-}
-
-/* ── Hero overlay ── */
-.hero-overlay {
+/* ── Spotlight hero ── */
+.hero {
   position: relative;
-  z-index: 10;
-  text-align: center;
-  margin-bottom: clamp(1rem, 3vw, 2rem);
-  pointer-events: auto;
-}
-
-.hero-overlay__title {
-  font-size: clamp(2.5rem, 7vw, 4.5rem);
-  font-weight: 800;
-  margin: 0;
-  background: linear-gradient(135deg, var(--text-color) 30%, var(--accent-color));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  line-height: 1.1;
-}
-
-.hero-overlay__tagline {
-  font-size: clamp(1rem, 2vw, 1.25rem);
-  color: var(--muted-text);
-  margin: var(--space-md) auto 0;
-  max-width: 480px;
-  line-height: 1.5;
-}
-
-.hero-overlay__cta {
-  margin-top: var(--space-xl);
-  padding: 0.9rem 2.2rem;
-  font-size: var(--font-size-lg);
-}
-
-/* ── 3D scene ── */
-.cover-experience__visual {
-  position: relative;
-  width: 100%;
-  min-height: clamp(360px, 55vw, 620px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  perspective: 1800px;
-  perspective-origin: center;
-}
-
-.cover-ring {
-  position: relative;
-  width: min(860px, 100%);
-  aspect-ratio: 1 / 0.55;
-  transform-style: preserve-3d;
-}
-
-.cover-ring__orbit {
-  position: absolute;
-  inset: 0;
-  transform-style: preserve-3d;
-  perspective-origin: center;
-}
-
-.cover-ring__halo {
-  position: absolute;
-  top: 55%;
-  left: 50%;
-  width: 120%;
-  height: 35%;
-  transform: translate(-50%, -50%) rotateX(85deg);
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(24, 72, 138, 0.4), transparent 70%);
-  filter: blur(14px);
-  opacity: 0.7;
-}
-
-.cover-ring__planet {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: clamp(120px, 18vw, 220px);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 2;
   isolation: isolate;
-  background-image:
-    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 38%),
-    radial-gradient(circle at 68% 72%, rgba(1, 4, 12, 0.1), rgba(1, 4, 12, 0.9) 82%),
-    url('/assets/earth-albedo.jpg'),
-    url('/assets/earth-night-lights.png');
-  background-size: 120% 120%, 120% 120%, auto 160%, auto 160%;
-  background-position: center center, center center, center center, center center;
-  background-repeat: no-repeat;
-  background-blend-mode: screen, multiply, normal, screen;
-  box-shadow:
-    0 0 45px rgba(84, 173, 255, 0.45),
-    inset 0 -30px 45px rgba(3, 10, 25, 0.75);
-  overflow: visible;
-}
-
-.cover-ring__planet::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background-image: url('/assets/earth-clouds.png');
-  background-size: 220% auto;
-  background-position: center;
-  background-repeat: no-repeat;
-  mix-blend-mode: screen;
-  opacity: 0.35;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.cover-ring__planet::after {
-  content: '';
-  position: absolute;
-  inset: -15%;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(88, 173, 255, 0.45), transparent 65%);
-  filter: blur(12px);
-  opacity: 0.55;
-  animation: planet-glow 6s ease-in-out infinite;
-  pointer-events: none;
-  z-index: -1;
-}
-
-/* ── Cover cards ── */
-.cover-card {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: clamp(130px, 14vw, 170px);
-  aspect-ratio: 2 / 3;
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
-  pointer-events: none;
-  transform: translate3d(-50%, -50%, 0)
-    rotateY(var(--card-angle, 0deg))
-    translateZ(var(--ring-radius, 380px));
-}
-
-.cover-card__animator {
-  width: 100%;
-  height: 100%;
-  transform-style: preserve-3d;
-  opacity: 0;
-  visibility: hidden;
-}
-
-.cover-card__inner {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  transform-style: preserve-3d;
-  border-radius: 16px;
-  overflow: visible;
-  box-shadow: 0 30px 55px rgba(0, 0, 0, 0.5);
-  transform: rotateY(var(--card-angle-inverse, 0deg));
-}
-
-.cover-card__face {
-  position: absolute;
-  inset: 0;
-  border-radius: 16px;
-  background-size: cover;
-  background-position: center;
-  backface-visibility: hidden;
   overflow: hidden;
+  border-bottom: 1px solid rgb(255 255 255 / 5%);
 }
 
-.cover-card__face--front {
-  transform: translateZ(8px);
-  border: 1px solid rgba(84, 173, 255, 0.4);
-}
-
-.cover-card__face--side {
-  width: 16px;
-  right: -8px;
-  top: 0;
-  bottom: 0;
-  border-radius: 6px;
-  background: linear-gradient(180deg, rgba(3, 19, 41, 0.95), rgba(6, 35, 72, 0.75));
-  transform-origin: left center;
-  transform: rotateY(90deg) translateX(-8px);
-  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.35);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.cover-card__edge {
+.hero__backdrop {
   position: absolute;
-  inset: 2px;
-  border-radius: 12px;
-  border: 2px solid rgba(255, 255, 255, 0.05);
-  transform: translateZ(4px);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.cover-card__glow {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 20% 20%, rgba(84, 173, 255, 0.35), transparent 70%);
-  mix-blend-mode: screen;
-  pointer-events: none;
-}
-
-@keyframes planet-glow {
-  0%,
-  100% {
-    opacity: 0.45;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.75;
-    transform: scale(1.06);
-  }
-}
-
-/* ── Featured Games ── */
-.featured {
-  width: 100%;
-}
-
-.featured__header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--space-md);
-  margin-bottom: var(--space-xl);
-
-  h2 {
-    margin: var(--space-xs) 0 0;
-    font-size: var(--heading-2);
-  }
-}
-
-.featured__list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: var(--space-lg);
-}
-
-.featured-card {
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  position: relative;
-  transition: transform var(--transition-base), box-shadow var(--transition-base);
-
-  &:hover {
-    transform: translateY(-6px);
-    box-shadow: var(--shadow-elevated);
-  }
-}
-
-.featured-card__link {
-  display: block;
-  text-decoration: none;
-  color: inherit;
-  position: relative;
-}
-
-.featured-card__img {
-  width: 100%;
-  aspect-ratio: 3 / 4;
+  inset: -10%;
+  z-index: -2;
+  width: 120%;
+  height: 120%;
   object-fit: cover;
-  display: block;
+  filter: blur(48px) saturate(130%);
+  opacity: 0.55;
 }
 
-.featured-card__overlay {
+.hero::after {
+  content: '';
   position: absolute;
   inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, var(--ink) 8%, rgb(19 16 42 / 70%) 55%, rgb(19 16 42 / 35%)),
+    linear-gradient(0deg, var(--ink), transparent 40%);
+}
+
+.hero__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 340px);
+  align-items: center;
+  gap: clamp(1.5rem, 5vw, 4.5rem);
+  padding-block: clamp(2.5rem, 7vw, 5.5rem);
+}
+
+.hero__copy {
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  padding: var(--space-lg);
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, transparent 60%);
+  align-items: flex-start;
+  gap: var(--space-4);
 }
 
-.featured-card__name {
-  margin: var(--space-sm) 0 0;
+.hero__kicker {
+  color: var(--volt);
   font-weight: 700;
-  font-size: var(--font-size-lg);
-  line-height: 1.2;
+  font-size: var(--text-sm);
+}
+
+.hero__title {
+  font-size: var(--text-4xl);
+  font-weight: 900;
+  line-height: 0.88;
+  max-width: 12ch;
+}
+
+.hero__meta {
+  color: var(--haze);
+  font-weight: 600;
+}
+
+.hero__desc {
+  max-width: 52ch;
+  font-size: var(--text-lg);
+  line-height: 1.5;
+  color: #d9d4f2;
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+
+  app-price {
+    margin-right: var(--space-3);
+  }
+}
+
+.hero__cover .cover {
+  box-shadow: var(--shadow-sheet);
+}
+
+.hero--loading .hero__copy {
+  gap: var(--space-5);
+}
+
+.hero--empty .hero__inner {
+  grid-template-columns: 1fr;
+}
+
+/* ── Blocks ── */
+.block {
+  padding-top: clamp(2.5rem, 6vw, 4rem);
+}
+
+.block__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+/* ── Featured ── */
+.featured {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(1rem, 2.5vw, 2rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.featured-card .cover {
+  position: relative;
 }
 
 .featured-card__price {
-  margin: var(--space-xs) 0 0;
-  font-size: var(--font-size-sm);
-  color: var(--accent-secondary);
-  font-weight: 600;
+  position: absolute;
+  right: 0;
+  bottom: var(--space-4);
 }
 
-.featured-card--skeleton {
-  background: var(--card-color);
-  border-radius: var(--radius-lg);
-}
-
-/* ── Categories ── */
-.categories {
-  width: 100%;
-}
-
-.categories__header {
-  margin-bottom: var(--space-xl);
-
-  h2 {
-    margin: var(--space-xs) 0 0;
-    font-size: var(--heading-2);
-  }
-}
-
-.categories__grid {
+/* ── Genre index ── */
+.genres {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: var(--space-md);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.category-card {
+.genre-tile {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-xl) var(--space-md);
-  border-radius: var(--radius-lg);
-  background: var(--card-color);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
   text-decoration: none;
-  color: var(--text-color);
-  transition: transform var(--transition-base), border-color var(--transition-base), box-shadow var(--transition-base);
+  transition: border-color var(--dur-fast), background-color var(--dur-fast);
 
   &:hover {
-    transform: translateY(-4px);
-    border-color: var(--accent-color);
-    box-shadow: var(--shadow-accent);
+    border-color: var(--volt);
+    background: var(--night);
   }
 }
 
-.category-card__icon {
-  font-size: 2rem;
-  width: 2rem;
-  height: 2rem;
-  color: var(--accent-color);
+.genre-tile__name {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-xl);
+  line-height: 1;
 }
 
-.category-card__label {
-  font-weight: 600;
-  font-size: var(--font-size-base);
+.genre-tile__count {
+  color: var(--haze);
+  font-size: var(--text-sm);
 }
 
-/* ── Mobile ── */
-@media (max-width: 640px) {
-  .cover-experience {
-    min-height: auto;
-  }
-
-  .cover-experience__stage {
-    position: static;
-    height: auto;
-    padding: clamp(2rem, 4vw, 3rem) clamp(1rem, 3vw, 2rem);
-  }
-
-  .hero-overlay__title {
-    font-size: clamp(2rem, 8vw, 3rem);
-  }
-
-  .cover-ring {
-    width: 100%;
-    aspect-ratio: auto;
-  }
-
-  .cover-ring__halo,
-  .cover-ring__planet {
-    display: none;
-  }
-
-  .cover-ring__orbit {
-    position: relative;
-    display: grid;
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .featured {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1rem;
-    transform: none !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero__inner {
+    grid-template-columns: 1fr;
   }
 
-  .cover-card {
-    position: relative;
-    top: auto;
-    left: auto;
+  .hero__cover {
+    order: -1;
+    width: min(56%, 220px);
+  }
+
+  .hero__actions {
     width: 100%;
-    opacity: 1;
-    visibility: visible;
-    transform: none !important;
+
+    .btn {
+      flex: 1 1 auto;
+    }
+
+    app-price {
+      flex-basis: 100%;
+    }
+  }
+}
+
+/* ── Motion ──
+   Spotlight copy staggers in fast (≤500ms total) from an already-painted
+   state (opacity starts above zero), the cover settles from a slight zoom,
+   and the blurred backdrop drifts very slowly. Nothing waits to be painted. */
+@media (prefers-reduced-motion: no-preference) {
+  .hero:not(.hero--loading) .hero__copy > * {
+    animation: hero-rise 300ms var(--ease-out) backwards;
+
+    @for $i from 2 through 5 {
+      &:nth-child(#{$i}) {
+        animation-delay: #{($i - 1) * 45}ms;
+      }
+    }
   }
 
-  .cover-card__animator {
-    opacity: 1;
-    visibility: visible;
+  .hero:not(.hero--loading) .hero__cover .cover {
+    animation: hero-cover-settle 480ms var(--ease-out) backwards;
   }
 
-  .cover-card__inner {
-    transform: none !important;
+  .hero__backdrop {
+    animation: hero-drift 32s var(--ease-in-out) infinite alternate;
   }
+}
 
-  .featured__header {
-    flex-direction: column;
-    align-items: flex-start;
+@media (prefers-reduced-motion: reduce) {
+  .hero:not(.hero--loading) .hero__copy > * {
+    animation: hero-fade 240ms ease-out backwards;
   }
+}
 
-  .featured__list {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-md);
+/* Don't spend frames on a tab nobody is looking at */
+:host-context(html[data-tab-hidden]) .hero__backdrop {
+  animation-play-state: paused;
+}
+
+@keyframes hero-rise {
+  from {
+    opacity: 0.01;
+    transform: translate3d(0, 14px, 0);
   }
+}
 
-  .categories__grid {
-    grid-template-columns: repeat(2, 1fr);
+@keyframes hero-fade {
+  from {
+    opacity: 0.01;
+  }
+}
+
+@keyframes hero-cover-settle {
+  from {
+    transform: scale(1.04) rotate(0.6deg);
+  }
+}
+
+@keyframes hero-drift {
+  from {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.08) translate3d(-2%, 1.5%, 0);
   }
 }

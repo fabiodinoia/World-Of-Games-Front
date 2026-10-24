@@ -1,69 +1,87 @@
-<section class="profile" *ngIf="currentUser$ | async as user">
-  <!-- User card -->
-  <div class="profile__card panel">
-    <div class="profile__header">
-      <div class="profile__avatar">
-        <img [src]="user.img" alt="User Avatar">
+<div class="page">
+  @if (currentUser$ | async; as user) {
+    <header class="profile">
+      <div class="profile__avatar" aria-hidden="true">
+        @if (user.img) {
+          <img [src]="user.img" alt="">
+        } @else {
+          <span>{{ initial(user) }}</span>
+        }
       </div>
-      <div class="profile__info">
+      <div class="profile__id">
         <h1>{{ user.name }}</h1>
-        <p class="profile__email">{{ user.email }}</p>
-        <p class="profile__address" *ngIf="user.address">{{ user.address }}</p>
+        <p class="muted">{{ user.email }}</p>
       </div>
-    </div>
-    <div class="profile__actions">
-      <button type="button" class="btn btn--secondary btn--sm" (click)="editUser()">
-        <mat-icon>edit</mat-icon>
-        Edit profile
-      </button>
-      <button type="button" class="btn btn--danger btn--sm" (click)="logoutUser()">
-        <mat-icon>exit_to_app</mat-icon>
-        Logout
-      </button>
-      <button type="button" class="btn btn--ghost btn--sm profile__delete" (click)="deleteUser(user)">
-        <mat-icon>delete_outline</mat-icon>
-        Delete account
-      </button>
-    </div>
-  </div>
-
-  <!-- My games -->
-  <div class="profile__games panel">
-    <div class="profile__games-header">
-      <h2>My Games</h2>
-      <a class="btn btn--primary btn--sm" routerLink="/games/create">
-        <mat-icon>add</mat-icon>
-        Add game
-      </a>
-    </div>
-
-    <ul class="profile__game-list" *ngIf="user.myGames?.length; else emptyState">
-      <li class="profile__game-item" *ngFor="let game of user.myGames">
-        <div class="profile__game-info">
-          <img class="profile__game-img" [src]="game.img" [alt]="game.gameName" loading="lazy">
-          <div class="profile__game-details">
-            <p class="profile__game-name">{{ game.gameName }}</p>
-            <span class="badge">{{ game.category }}</span>
-            <p class="profile__game-price">{{ game.price | currency:'EUR' }}</p>
-          </div>
-        </div>
-        <div class="profile__game-actions">
-          <button type="button" class="btn btn--icon" (click)="editGame(game)" aria-label="Edit game">
-            <mat-icon>edit</mat-icon>
-          </button>
-          <button type="button" class="btn btn--icon" (click)="deleteGame(game)" aria-label="Delete game">
-            <mat-icon>delete_outline</mat-icon>
-          </button>
-        </div>
-      </li>
-    </ul>
-
-    <ng-template #emptyState>
-      <div class="profile__empty">
-        <mat-icon>sports_esports</mat-icon>
-        <p>You haven't published any games yet.</p>
-        <a class="btn btn--secondary btn--sm" routerLink="/games/create">Publish your first game</a>
+      <div class="profile__actions">
+        <button type="button" class="btn btn--outline btn--sm" (click)="editUser()">
+          <app-icon name="edit" /> Edit profile
+        </button>
+        <button type="button" class="btn btn--outline btn--sm" (click)="logoutUser()">
+          <app-icon name="logout" /> Sign out
+        </button>
       </div>
-    </ng-template>
-  </div>
-</section>
+    </header>
+
+    <section class="listings" aria-labelledby="listings-title">
+      <header class="listings__head">
+        <h2 id="listings-title">Your listings</h2>
+        <a class="btn btn--primary btn--sm" routerLink="/games/create">
+          <app-icon name="plus" /> Sell a game
+        </a>
+      </header>
+
+      @if (user.myGames?.length) {
+        <ul class="listings__grid">
+          @for (game of user.myGames; track $index) {
+            <li class="listing">
+              <a class="cover-link" [routerLink]="['/games', game.id]" appCoverMorph>
+                <div class="cover"><img [src]="game.img" [alt]="'Cover art for ' + game.gameName" loading="lazy" width="240" height="320"></div>
+                <div class="cover-caption">
+                  <span class="cover-caption__name">{{ game.gameName }}</span>
+                  <span class="listing__meta"><span class="genre">{{ game.category }}</span><app-price [value]="game.price" /></span>
+                </div>
+              </a>
+              <div class="listing__actions">
+                <button type="button" class="btn btn--outline btn--sm" (click)="editGame(game)"
+                  [attr.aria-label]="'Edit ' + game.gameName">
+                  <app-icon name="edit" /> Edit
+                </button>
+                <button type="button" class="btn btn--danger btn--sm btn--icon" (click)="pendingGame.set(game)"
+                  [attr.aria-label]="'Delete ' + game.gameName">
+                  <app-icon name="trash" />
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+      } @else {
+        <div class="empty">
+          <h2>No listings yet</h2>
+          <p>Games you publish show up here, ready to edit or take down.</p>
+          <a class="btn btn--light" routerLink="/games/create">List your first game</a>
+        </div>
+      }
+    </section>
+
+    <section class="danger" aria-labelledby="danger-title">
+      <h2 id="danger-title" class="danger__title">Delete account</h2>
+      <p class="muted">Removes your profile and signs you out. This can't be undone.</p>
+      <button type="button" class="btn btn--danger btn--sm" (click)="confirmAccount.set(true)">Delete account</button>
+    </section>
+
+    <app-confirm-dialog [open]="!!pendingGame()" [busy]="isDeleting()"
+      [heading]="'Delete ' + (pendingGame()?.gameName ?? 'listing') + '?'"
+      message="The listing is removed from the store for everyone. This can't be undone."
+      confirmLabel="Delete listing" (confirmed)="deleteGame(pendingGame()!)" (cancelled)="cancelDialogs()" />
+
+    <app-confirm-dialog [open]="confirmAccount()" [busy]="isDeleting()"
+      heading="Delete your account?"
+      message="Your profile is removed and you're signed out. This can't be undone."
+      confirmLabel="Delete account" (confirmed)="deleteUser(user)" (cancelled)="cancelDialogs()" />
+  } @else {
+    <div class="profile" aria-busy="true">
+      <div class="profile__avatar skeleton"></div>
+      <div class="skeleton" style="height: 2.5rem; width: 220px"></div>
+    </div>
+  }
+</div>

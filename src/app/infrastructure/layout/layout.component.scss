@@ -5,45 +5,23 @@
 }
 
 .layout-header {
-  position: fixed;
+  position: sticky;
   top: 0;
-  left: 0;
-  right: 0;
-  height: 72px;
   z-index: 40;
-  background: rgba(3, 12, 24, 0.92);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(84, 173, 255, 0.12);
+  /* Own view-transition layer: the bar stays put while pages crossfade */
+  view-transition-name: site-header;
 }
 
 main {
   flex: 1;
   width: 100%;
-  display: flex;
-  justify-content: center;
-  padding-top: 88px;
-}
+  /* Keeps the footer below the fold while a lazy route is still loading, so
+     the page arriving doesn't shove it down (the one real CLS source). */
+  min-height: calc(100vh - var(--header-h));
+  padding-bottom: var(--space-8);
 
-.layout-content {
-  width: min(var(--page-max-width), 100%);
-  padding: var(--page-padding-y) var(--page-padding-x) 4rem;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xl);
-}
-
-.layout-footer {
-  flex-shrink: 0;
-}
-
-@media (max-width: 768px) {
-  .layout-header {
-    height: auto;
-    min-height: 64px;
-  }
-
-  main {
-    padding-top: 76px;
+  &:focus {
+    outline: none;
+    box-shadow: none;
   }
 }

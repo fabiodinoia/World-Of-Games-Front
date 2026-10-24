@@ -1,34 +1,42 @@
-import { HttpClientModule } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { MatIconModule } from '@angular/material/icon';
-import { RouterTestingModule } from '@angular/router/testing';
 import { FooterComponent } from '../footer/footer.component';
 import { HeaderComponent } from '../header/header.component';
-import { MenuComponent } from '../menu/menu.component';
-
 import { LayoutComponent } from './layout.component';
+import { RepoUserService } from 'src/app/services/user/user.service';
+import { createUserServiceMock } from 'src/app/utils/mocks';
 
 describe('LayoutComponent', () => {
-  let component: LayoutComponent;
   let fixture: ComponentFixture<LayoutComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [
+      imports: [
         LayoutComponent,
         FooterComponent,
         HeaderComponent,
-        MenuComponent,
       ],
-      imports: [MatIconModule, RouterTestingModule, HttpClientModule],
+      providers: [
+        provideRouter([]),
+        { provide: RepoUserService, useValue: createUserServiceMock() },
+      ],
     }).compileComponents();
-
     fixture = TestBed.createComponent(LayoutComponent);
-    component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('renders header and footer', () => {
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector('app-header')).toBeTruthy();
+    expect(el.querySelector('app-footer')).toBeTruthy();
+  });
+
+  it('skip link focuses the main landmark without navigating', () => {
+    const el: HTMLElement = fixture.nativeElement;
+    const link = el.querySelector('.skip-link') as HTMLAnchorElement;
+    const event = new MouseEvent('click', { cancelable: true });
+    link.dispatchEvent(event);
+    expect(event.defaultPrevented).toBeTrue();
+    expect(document.activeElement).toBe(el.querySelector('main'));
   });
 });

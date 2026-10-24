@@ -1,46 +1,49 @@
-<header class="header">
-  <div class="header__inner">
-    <a class="header__logo" routerLink="/home">
-      <img alt="World of Games logo" src="/assets/WOG-logo2.png">
+<header class="bar">
+  <div class="bar__inner page">
+    <a class="wordmark" routerLink="/" aria-label="World of Games home">
+      <span class="wordmark__tag" aria-hidden="true">W</span>
+      <span class="wordmark__text" aria-hidden="true">
+        <span class="wordmark__small">World of</span>
+        <span class="wordmark__big">Games</span>
+      </span>
     </a>
 
-    <nav class="header__nav" [class.header__nav--open]="mobileMenuOpen">
-      <a class="header__link" routerLink="/home"
-         [class.header__link--active]="isActive('/home')"
-         (click)="mobileMenuOpen = false">
-        Home
-      </a>
-      <a class="header__link" routerLink="/games"
-         [class.header__link--active]="isActive('/games')"
-         (click)="mobileMenuOpen = false">
-        Browse Games
-      </a>
-      <a class="header__link header__link--cart" routerLink="/cart"
-         [class.header__link--active]="isActive('/cart')"
-         *ngIf="isLoggedIn"
-         (click)="mobileMenuOpen = false">
-        Cart
-        <span class="header__badge" *ngIf="cartCount > 0">{{ cartCount }}</span>
-      </a>
+    <nav class="nav" id="site-nav" aria-label="Main" [class.nav--open]="mobileMenuOpen()">
+      @if (isLoggedIn()) {
+        <a class="nav__link" routerLink="/games" [class.nav__link--active]="isActive('/games') && !isActive('/games/create')"
+          [attr.aria-current]="isActive('/games') && !isActive('/games/create') ? 'page' : null">Store</a>
+        <a class="nav__link" routerLink="/games/create" [class.nav__link--active]="isActive('/games/create')"
+          [attr.aria-current]="isActive('/games/create') ? 'page' : null">Sell a game</a>
+      }
+
+      <div class="nav__account">
+        @if (isLoggedIn()) {
+          <a class="account" [routerLink]="['/user', userId()]" [class.account--active]="isActive('/user')">
+            <span class="account__avatar" aria-hidden="true">{{ initial() }}</span>
+            <span class="account__name">{{ userName() || 'Account' }}</span>
+          </a>
+        } @else {
+          <a class="btn btn--ghost btn--sm" routerLink="/login">Sign in</a>
+          <a class="btn btn--outline btn--sm" routerLink="/register">Register</a>
+        }
+      </div>
     </nav>
 
-    <div class="header__actions">
-      <ng-container *ngIf="isLoggedIn; else authButtons">
-        <a class="header__user" [routerLink]="['/user', userId]">
-          <mat-icon>account_circle</mat-icon>
-          <span class="header__user-name">{{ userName || 'Account' }}</span>
+    <div class="bar__end">
+      @if (isLoggedIn()) {
+        <a class="cart" routerLink="/cart" data-cart-target [class.cart--active]="isActive('/cart')"
+          [attr.aria-label]="cartCount() === 1 ? 'Cart, 1 item' : 'Cart, ' + cartCount() + ' items'">
+          <app-icon name="cart" />
+          @if (cartCount() > 0) {
+            <span class="cart__badge" aria-hidden="true">{{ cartCount() }}</span>
+          }
         </a>
-      </ng-container>
-      <ng-template #authButtons>
-        <a class="btn btn--sm btn--ghost" routerLink="/login">Login</a>
-        <a class="btn btn--sm btn--primary" routerLink="/register">Register</a>
-      </ng-template>
+      }
+      <button class="burger btn btn--ghost btn--icon" type="button" (click)="toggleMobileMenu()"
+        aria-controls="site-nav" [attr.aria-expanded]="mobileMenuOpen()"
+        [attr.aria-label]="mobileMenuOpen() ? 'Close menu' : 'Open menu'">
+        <app-icon [name]="mobileMenuOpen() ? 'close' : 'menu'" />
+      </button>
     </div>
-
-    <button class="header__hamburger" (click)="toggleMobileMenu()" aria-label="Toggle menu">
-      <span [class.open]="mobileMenuOpen"></span>
-      <span [class.open]="mobileMenuOpen"></span>
-      <span [class.open]="mobileMenuOpen"></span>
-    </button>
   </div>
 </header>

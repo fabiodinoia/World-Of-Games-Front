@@ -1,0 +1,27 @@
+<section class="landing">
+  <div class="landing__panel">
+    <p class="landing__kicker" appReveal>Game marketplace</p>
+    <h1 class="landing__title" appReveal>World of <span class="landing__outline">Games</span></h1>
+    <p class="landing__tag" appReveal>Buy, sell and trade the games you love.</p>
+    <div class="landing__actions" appReveal>
+      <a class="btn btn--primary btn--lg" routerLink="/login" data-testid="landing-login">Log in</a>
+      <button class="btn btn--light btn--lg" type="button" data-testid="landing-demo"
+              [attr.aria-busy]="isSubmitting()" (click)="loginAsDemo()">Try the demo</button>
+    </div>
+    @if (isError()) { <p class="landing__error" role="alert">Demo sign-in failed — try again.</p> }
+  </div>
+
+  <!-- Pins sit beside (not inside) the host: its role="img" would hide the links from assistive tech. -->
+  <div #globeEl class="landing__globe" [class.landing__globe--live]="!!globe()"
+       [class.landing__globe--dragging]="isDragging()"
+       (pointerdown)="onDragStart($event)" (pointermove)="onDragMove($event)"
+       (pointerup)="onDragEnd($event)" (pointercancel)="onDragCancel($event)"
+       (focusin)="onOverlayFocusIn($event)" (focusout)="onOverlayFocusOut($event)"
+       (dragstart)="$event.preventDefault()">
+    <app-three-host class="landing__globe-host" [sceneLoader]="loadGlobe" poster="assets/3d/globe-poster.webp"
+                    label="Spinning globe of the most wanted games by city" (ready)="onGlobeReady($event)" />
+    @if (globe()) {
+      <app-globe-pins [links]="links()" [points]="points()" (pinHover)="onPinHover($event)" />
+    }
+  </div>
+</section>

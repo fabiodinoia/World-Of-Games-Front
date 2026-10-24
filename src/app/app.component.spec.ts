@@ -1,32 +1,22 @@
-import { HttpClientModule } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
-import { AppRoutingModule } from './app-routing.module';
+import { provideRouter } from '@angular/router';
 import { AppComponent } from './app.component';
-import { InfrastructureModule } from './infrastructure/infrastructure.module';
+import { RepoUserService } from './services/user/user.service';
+import { createUserServiceMock } from './utils/mocks';
 
 describe('AppComponent', () => {
-  beforeEach(async () => {
+  it('renders the layout and restores the session on start', async () => {
+    const srv = createUserServiceMock();
     await TestBed.configureTestingModule({
-      imports: [
-        RouterTestingModule,
-        AppRoutingModule,
-        InfrastructureModule,
-        HttpClientModule,
+      imports: [AppComponent],
+      providers: [
+        provideRouter([]),
+        { provide: RepoUserService, useValue: srv },
       ],
-      declarations: [AppComponent],
     }).compileComponents();
-  });
-
-  it('should create the app', () => {
     const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
-  });
-
-  it(`should have as title 'World-Of-Games-Front'`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app.title).toEqual('World-Of-Games-Front');
+    fixture.detectChanges();
+    expect(srv.restoreSession).toHaveBeenCalled();
+    expect(fixture.nativeElement.querySelector('app-layout')).toBeTruthy();
   });
 });

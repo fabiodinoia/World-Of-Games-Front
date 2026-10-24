@@ -18,37 +18,43 @@ export class RepoGameService {
     return this._games$.asObservable();
   }
 
+  /** Last catalog snapshot entry for an id, if any (for instant detail render). */
+  cachedGame(id: string): Game | undefined {
+    return this._games$.value.find((g) => g.id === id);
+  }
+
+  /** POST answers `{ results: [game] }`, the new game carrying its `id`. */
   createGame(game: Game): Observable<Game> {
-    return this.http.post<Game>(this.apiUrl, game).pipe(
+    return this.http.post<{ results: Game[] }>(this.apiUrl, game).pipe(
+      map((response) => response.results[0]),
       catchError((error) => {
         console.error('Failed to create game:', error);
         return throwError(() => error);
-      })
+      }),
     );
   }
 
   loadGame(id: string): Observable<Game> {
-    return this.http.get<Game>(this.apiUrl + id).pipe(
+    return this.http.get<{ results: Game[] }>(this.apiUrl + id).pipe(
+      map((response) => response.results[0]),
       catchError((error) => {
         console.error('Failed to load game:', error);
         return throwError(() => error);
-      })
+      }),
     );
   }
 
   loadAllGames(): Observable<Game[]> {
-    return this.http
-      .get<{ results: Game[][] }>(this.apiUrl)
-      .pipe(
-        map((response) => {
-          this._games$.next(response.results[0]);
-          return response.results[0];
-        }),
-        catchError((error) => {
-          console.error('Failed to load games:', error);
-          return throwError(() => error);
-        })
-      );
+    return this.http.get<{ results: Game[][] }>(this.apiUrl).pipe(
+      map((response) => {
+        this._games$.next(response.results[0]);
+        return response.results[0];
+      }),
+      catchError((error) => {
+        console.error('Failed to load games:', error);
+        return throwError(() => error);
+      }),
+    );
   }
 
   queryGame(category: string): Observable<Game[]> {
@@ -65,7 +71,7 @@ export class RepoGameService {
       catchError((error) => {
         console.error('Failed to query games:', error);
         return throwError(() => error);
-      })
+      }),
     );
   }
 
@@ -74,7 +80,7 @@ export class RepoGameService {
       catchError((error) => {
         console.error('Failed to update game:', error);
         return throwError(() => error);
-      })
+      }),
     );
   }
 
@@ -83,7 +89,7 @@ export class RepoGameService {
       catchError((error) => {
         console.error('Failed to delete game:', error);
         return throwError(() => error);
-      })
+      }),
     );
   }
 }

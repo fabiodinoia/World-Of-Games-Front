@@ -1,91 +1,135 @@
-<section class="cover-experience" #coverExperience>
-  <div class="cover-experience__stage">
-    <!-- Hero text overlay -->
-    <div class="hero-overlay">
-      <h1 class="hero-overlay__title">World of Games</h1>
-      <p class="hero-overlay__tagline">Discover, collect, and trade the best titles on the planet.</p>
-      <a class="btn btn--primary hero-overlay__cta" routerLink="/games">
-        Browse the store
+<h1 class="visually-hidden">World of Games</h1>
+
+<!-- Spotlight: the newest release, art-led -->
+@if (spotlight(); as game) {
+  <section class="hero" aria-labelledby="spotlight-title">
+    <img class="hero__backdrop" [src]="game.img" alt="" aria-hidden="true" fetchpriority="high">
+    <div class="hero__inner page">
+      <div class="hero__copy">
+        <p class="hero__kicker">Newest release</p>
+        <h2 id="spotlight-title" class="hero__title">{{ game.gameName }}</h2>
+        <p class="hero__meta">{{ game.category }}, {{ yearOf(game.releaseDate) }}</p>
+        @if (game.description) {
+          <p class="hero__desc">{{ game.description }}</p>
+        }
+        <div class="hero__actions">
+          <app-price [value]="game.price" size="lg" />
+          <a class="btn btn--primary btn--lg" [routerLink]="['/games', game.id]" [appCoverMorph]="heroCover">View game</a>
+          <a class="btn btn--outline btn--lg" routerLink="/games">Browse all games</a>
+        </div>
+      </div>
+      <a class="hero__cover cover-link" [routerLink]="['/games', game.id]" tabindex="-1" aria-hidden="true" appCoverMorph>
+        <div class="cover" #heroCover>
+          <img [src]="game.img" alt="" width="360" height="480" fetchpriority="high" loading="eager">
+        </div>
       </a>
     </div>
-
-    <div class="cover-experience__visual">
-      <div class="cover-ring" [style.--ring-radius.px]="ringRadius">
-        <div class="cover-ring__halo"></div>
-        <div class="cover-ring__planet" #ringPlanet></div>
-        <div class="cover-ring__orbit" #ringOrbit>
-          <article
-            class="cover-card"
-            *ngFor="let card of coverCards; let index = index"
-            [attr.aria-label]="card.label"
-            [style.--card-angle]="card.angle + 'deg'"
-            [style.--card-angle-inverse]="-card.angle + 'deg'"
-            [style.zIndex]="index"
-          >
-            <div class="cover-card__animator" #coverCard>
-              <div class="cover-card__inner">
-                <div class="cover-card__face cover-card__face--front" [style.backgroundImage]="'url(' + card.src + ')'">
-                  <span class="cover-card__glow"></span>
-                </div>
-                <div class="cover-card__face cover-card__face--side"></div>
-                <div class="cover-card__edge"></div>
-              </div>
-            </div>
-          </article>
+  </section>
+} @else if (isLoading()) {
+  <section class="hero hero--loading" aria-busy="true" aria-label="Loading the store">
+    <div class="hero__inner page">
+      <div class="hero__copy">
+        <div class="skeleton" style="height: 1rem; width: 120px"></div>
+        <div class="skeleton" style="height: 4.5rem; width: min(520px, 100%)"></div>
+        <div class="skeleton" style="height: 3rem; width: min(380px, 80%)"></div>
+      </div>
+      <div class="hero__cover"><div class="cover skeleton"></div></div>
+    </div>
+  </section>
+} @else {
+  <section class="hero hero--empty">
+    <div class="hero__inner page">
+      <div class="hero__copy">
+        <h2 class="hero__title">World of Games</h2>
+        <p class="hero__desc">
+          @if (loadFailed()) {
+            The store couldn't reach the game catalogue. Refresh the page to try again.
+          } @else {
+            No games are listed yet. Be the first to publish one.
+          }
+        </p>
+        <div class="hero__actions">
+          <a class="btn btn--primary btn--lg" routerLink="/games/create">Sell a game</a>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+}
 
-<!-- Featured Games -->
-<section class="featured panel">
-  <header class="featured__header">
-    <div>
-      <p class="eyebrow">Top Picks</p>
-      <h2>Featured Games</h2>
-    </div>
-    <a class="btn btn--secondary btn--sm" routerLink="/games">View all</a>
-  </header>
+<div class="page">
+  <!-- Featured -->
+  @if (featuredGames().length || isLoading()) {
+    <section class="block" aria-labelledby="featured-title">
+      <header class="block__head">
+        <h2 id="featured-title">Featured</h2>
+        <a class="text-link" routerLink="/games">See all games</a>
+      </header>
+      <ul class="featured">
+        @for (game of featuredGames(); track game.id) {
+          <li class="featured-card" [appReveal]="'featured:' + game.id">
+            <a class="cover-link" [routerLink]="['/games', game.id]" appCoverMorph>
+              <div class="cover">
+                <img [src]="game.img" [alt]="'Cover art for ' + game.gameName" width="300" height="400">
+                <app-price class="featured-card__price" [value]="game.price" />
+              </div>
+              <div class="cover-caption">
+                <span class="cover-caption__name">{{ game.gameName }}</span>
+                <span class="genre">{{ game.category }}</span>
+              </div>
+            </a>
+          </li>
+        } @empty {
+          @for (i of [1, 2, 3, 4]; track i) {
+            <li aria-hidden="true"><div class="cover skeleton"></div></li>
+          }
+        }
+      </ul>
+    </section>
+  }
 
-  <ul class="featured__list" *ngIf="featuredGames.length; else featuredSkeleton">
-    <li *ngFor="let game of featuredGames; trackBy: trackByGameId" class="featured-card">
-      <a [routerLink]="['/games', game.id]" class="featured-card__link">
-        <img [src]="game.img" [alt]="game.gameName" class="featured-card__img" loading="lazy">
-        <div class="featured-card__overlay">
-          <span class="badge">{{ game.category }}</span>
-          <p class="featured-card__name">{{ game.gameName }}</p>
-          <p class="featured-card__price">{{ game.price | currency:'EUR' }}</p>
-        </div>
-      </a>
-    </li>
-  </ul>
+  <!-- Genre shelves -->
+  @for (shelf of shelves(); track shelf.title) {
+    <section class="block" [attr.aria-label]="shelf.title">
+      <header class="block__head">
+        <h2>{{ shelf.title }}</h2>
+        @if (shelf.category) {
+          <a class="text-link" routerLink="/games" [queryParams]="{ category: shelf.category }">
+            All {{ shelf.title }} games
+          </a>
+        }
+      </header>
+      <ul class="shelf">
+        @for (game of shelf.games; track game.id) {
+          <li [appReveal]="'shelf:' + shelf.title + ':' + game.id">
+            <a class="cover-link" [routerLink]="['/games', game.id]" appCoverMorph>
+              <div class="cover">
+                <img [src]="game.img" [alt]="'Cover art for ' + game.gameName" loading="lazy" width="240" height="320">
+              </div>
+              <div class="cover-caption">
+                <span class="cover-caption__name">{{ game.gameName }}</span>
+                <app-price [value]="game.price" />
+              </div>
+            </a>
+          </li>
+        }
+      </ul>
+    </section>
+  }
 
-  <ng-template #featuredSkeleton>
-    <ul class="featured__list">
-      <li *ngFor="let i of [1,2,3,4]" class="featured-card featured-card--skeleton">
-        <div class="skeleton" style="width: 100%; aspect-ratio: 3/4;"></div>
-      </li>
+  <!-- Genre index -->
+  <section class="block" aria-labelledby="genres-title">
+    <header class="block__head">
+      <h2 id="genres-title">Browse by genre</h2>
+    </header>
+    <ul class="genres">
+      @for (cat of categoryLinks; track cat.value) {
+        <li [appReveal]="'genre:' + cat.value">
+          <a class="genre-tile" routerLink="/games" [queryParams]="{ category: cat.value }">
+            <span class="genre-tile__name">{{ cat.label }}</span>
+            <span class="genre-tile__count">{{ countLabel(cat.value) }}</span>
+          </a>
+        </li>
+      }
     </ul>
-  </ng-template>
-</section>
-
-<!-- Browse by Category -->
-<section class="categories">
-  <header class="categories__header">
-    <p class="eyebrow">Explore</p>
-    <h2>Browse by Category</h2>
-  </header>
-
-  <div class="categories__grid">
-    <a
-      *ngFor="let cat of categoryLinks"
-      [routerLink]="['/games']"
-      [queryParams]="{ category: cat.value }"
-      class="category-card"
-    >
-      <mat-icon class="category-card__icon">{{ cat.icon }}</mat-icon>
-      <span class="category-card__label">{{ cat.label }}</span>
-    </a>
-  </div>
-</section>
+  </section>
+</div>

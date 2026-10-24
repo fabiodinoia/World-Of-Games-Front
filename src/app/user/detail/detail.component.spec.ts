@@ -1,97 +1,72 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Router, provideRouter } from '@angular/router';
 import { RepoUserService } from 'src/app/services/user/user.service';
-
-import { UserDetailComponent } from './detail.component';
-import { HttpClientModule } from '@angular/common/http';
-import {
-  mockGame,
-  mockGameService,
-  mockRouteParam,
-  mockUser,
-  mockUserService,
-} from 'src/app/utils/mocks';
 import { RepoGameService } from 'src/app/services/game/game.services.service';
-import { RouterTestingModule } from '@angular/router/testing';
-import { RegisterComponent } from '../register/register.component';
-import { AddComponent } from 'src/app/game/add/add.component';
-import { ActivatedRoute } from '@angular/router';
+import {
+  createGameServiceMock,
+  createUserServiceMock,
+  mockGame,
+  mockUser,
+} from 'src/app/utils/mocks';
+import { UserDetailComponent } from './detail.component';
 
-describe('DetailComponent', () => {
-  let component: UserDetailComponent;
+describe('UserDetailComponent', () => {
   let fixture: ComponentFixture<UserDetailComponent>;
-  let srv: RepoUserService;
-  let gamesrv: RepoGameService;
+  let component: UserDetailComponent;
+  let srv: ReturnType<typeof createUserServiceMock>;
+  let gameSrv: ReturnType<typeof createGameServiceMock>;
+  let router: Router;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      declarations: [UserDetailComponent],
+  beforeEach(async () => {
+    srv = createUserServiceMock();
+    gameSrv = createGameServiceMock();
+    await TestBed.configureTestingModule({
+      imports: [UserDetailComponent],
       providers: [
-        { provide: RepoUserService, useValue: mockUserService },
-        { provide: RepoGameService, useValue: mockGameService },
-        { provide: ActivatedRoute, useValue: mockRouteParam },
-      ],
-      imports: [
-        HttpClientModule,
-        RouterTestingModule.withRoutes([
-          { path: 'register', component: RegisterComponent },
-          { path: 'create', component: AddComponent },
-        ]),
+        provideRouter([]),
+        { provide: RepoUserService, useValue: srv },
+        { provide: RepoGameService, useValue: gameSrv },
       ],
     }).compileComponents();
-  });
-
-  beforeEach(() => {
     fixture = TestBed.createComponent(UserDetailComponent);
     component = fixture.componentInstance;
-    srv = TestBed.inject(RepoUserService);
-    gamesrv = TestBed.inject(RepoGameService);
+    router = TestBed.inject(Router);
+    spyOn(router, 'navigate').and.resolveTo(true);
     fixture.detectChanges();
   });
 
-  it('should create with the current users datas', () => {
-    expect(component).toBeTruthy();
+  it('renders the current user', () => {
+    expect(fixture.nativeElement.textContent).toContain(mockUser.name);
   });
 
-  describe('When editGame is called', () => {
-    it('should call editGame and navigate to create', () => {
-      const spyZoneRun = spyOn(component.zone, 'run').and.callThrough();
-
-      component.editGame(mockGame);
-
-      expect(spyZoneRun).toHaveBeenCalled();
-    });
+  it('editGame stores the game and opens the editor', () => {
+    component.editGame(mockGame);
+    expect(gameSrv.gameInfo$.value).toEqual(mockGame);
+    expect(router.navigate).toHaveBeenCalledWith(['/games/create']);
   });
-  describe('When editUser is called', () => {
-    it('should call editUser and navigate to create', () => {
-      const spyZoneRun = spyOn(component.zone, 'run').and.callThrough();
 
-      component.editUser();
-
-      expect(spyZoneRun).toHaveBeenCalled();
-    });
+  it('editUser opens the register form', () => {
+    component.editUser();
+    expect(router.navigate).toHaveBeenCalledWith(['/register']);
   });
-  describe('When deleteGame is called', () => {
-    it('should call deleteGame', () => {
-      const spyOnGame = spyOn(gamesrv, 'deleteGame').and.callThrough();
-      component.deleteGame(mockUser.id as any);
 
-      expect(spyOnGame).toHaveBeenCalled();
-    });
+  it('deleteGame deletes then refreshes the user', () => {
+    srv.getCurrentUser.calls.reset();
+    component.deleteGame(mockGame);
+    expect(gameSrv.deleteGame).toHaveBeenCalledWith(mockGame.id as string);
+    expect(srv.getCurrentUser).toHaveBeenCalled();
   });
-  describe('When deleteUser is called', () => {
-    it('should call deleteGame', () => {
-      const spyOnUser = spyOn(srv, 'deleteUser').and.callThrough();
-      component.deleteUser(mockUser.id as any);
 
-      expect(spyOnUser).toHaveBeenCalled();
-    });
+  it('deleteUser deletes, logs out and goes home', () => {
+    component.deleteUser(mockUser);
+    expect(srv.deleteUser).toHaveBeenCalledWith(mockUser.id as string);
+    expect(srv.logout).toHaveBeenCalled();
+    expect(router.navigate).toHaveBeenCalledWith(['/']);
   });
-  describe('When Logout is called', () => {
-    it('should lead back to home', () => {
-      const spyOnZone = spyOn(component.zone, 'run').and.callThrough()
-      component.logoutUser();
 
-      expect(spyOnZone).toHaveBeenCalled();
-    });
+  it('logoutUser logs out and goes home', () => {
+    component.logoutUser();
+    expect(srv.logout).toHaveBeenCalled();
+    expect(router.navigate).toHaveBeenCalledWith(['/']);
   });
 });
