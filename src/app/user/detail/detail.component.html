@@ -35,7 +35,7 @@
           @for (game of user.myGames; track $index) {
             <li class="listing">
               <a class="cover-link" [routerLink]="['/games', game.id]" appCoverMorph>
-                <div class="cover"><img [src]="game.img" [alt]="'Cover art for ' + game.gameName" loading="lazy" width="240" height="320"></div>
+                <div class="cover"><img appImgSkeleton [src]="game.img" [alt]="'Cover art for ' + game.gameName" loading="lazy" width="240" height="320"></div>
                 <div class="cover-caption">
                   <span class="cover-caption__name">{{ game.gameName }}</span>
                   <span class="listing__meta"><span class="genre">{{ game.category }}</span><app-price [value]="game.price" /></span>

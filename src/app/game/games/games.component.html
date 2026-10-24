@@ -34,7 +34,7 @@
           <li class="game-card" [appReveal]="'catalog:' + game.id">
             <a class="cover-link" [routerLink]="['/games', game.id]" appCoverMorph>
               <div class="cover">
-                <img [src]="game.img" [alt]="'Cover art for ' + game.gameName" width="300" height="400"
+                <img appImgSkeleton [src]="game.img" [alt]="'Cover art for ' + game.gameName" width="300" height="400"
                   [attr.loading]="i < 5 ? 'eager' : 'lazy'" [attr.fetchpriority]="i === 0 ? 'high' : null">
               </div>
               <div class="cover-caption">

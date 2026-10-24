@@ -15,7 +15,7 @@
           (pointerdown)="onCaseDragStart($event)"
           (pointermove)="onCaseDrag($event)" (pointerup)="onCaseDragEnd($event)" (pointercancel)="onCaseDragEnd($event)">
           <!-- Stays rendered: view-transition morph target and fly-to-cart origin. -->
-          <img [src]="game.img" [alt]="'Cover art for ' + game.gameName" width="480" height="640"
+          <img appImgSkeleton [src]="game.img" [alt]="'Cover art for ' + game.gameName" width="480" height="640"
             loading="eager" fetchpriority="high">
           @if (isDesktop()) {
             <app-three-host class="detail-page__case" [sceneLoader]="loadCase"

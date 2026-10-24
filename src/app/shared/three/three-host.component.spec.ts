@@ -56,8 +56,13 @@ describe('ThreeHostComponent', () => {
     expect(handle.start).toHaveBeenCalled();
     expect(handle.renderOnce).not.toHaveBeenCalled();
     expect(fixture.componentInstance.handle()).toBe(handle);
-    expect(fixture.nativeElement.querySelector('img')).toBeFalsy();
+    // Crossfade: the poster fades out under the canvas, then is removed once its transition ends.
+    const poster: HTMLImageElement = fixture.nativeElement.querySelector('img.three-host__poster--off');
+    expect(poster).toBeTruthy();
     expect(fixture.nativeElement.querySelector('canvas.three-host__canvas--on')).toBeTruthy();
+    poster.dispatchEvent(new Event('transitionend'));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('img')).toBeFalsy();
     const host: HTMLElement = fixture.nativeElement.querySelector('app-three-host');
     expect(host.getAttribute('role')).toBe('img');
     expect(host.getAttribute('aria-label')).toBe('3D game case'); // name survives the poster swap

@@ -18,6 +18,7 @@ import { CoverMorphDirective } from 'src/app/shared/motion/cover-morph';
 import { RevealDirective } from 'src/app/shared/motion/reveal';
 import { GAME_CATEGORIES, gameCategory } from 'src/app/types/categories';
 import { Game } from 'src/app/types/types';
+import { ImgSkeletonDirective } from 'src/app/shared/motion/img-skeleton';
 
 type CategoryFilter = gameCategory | 'all';
 
@@ -31,7 +32,7 @@ interface CategoryOption {
   templateUrl: './games.component.html',
   styleUrls: ['./games.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, IconComponent, PriceComponent, CoverMorphDirective, RevealDirective],
+  imports: [RouterLink, IconComponent, PriceComponent, CoverMorphDirective, RevealDirective, ImgSkeletonDirective],
 })
 export class GamesComponent implements OnInit {
   private readonly userSrv = inject(RepoUserService);

@@ -61,9 +61,10 @@ describe('LoginComponent', () => {
       email: 'a@b.dev',
       password: mockPass,
     });
-    expect(component.isSuccess()).toBeTrue();
-    tick(1500);
+    // Navigates straight away, without an artificial pause.
     expect(router.navigateByUrl).toHaveBeenCalledWith('/games');
+    tick();
+    expect(component.isSubmitting()).toBeFalse();
   }));
 
   it('returns to the guarded page that redirected here', fakeAsync(() => {
@@ -71,7 +72,7 @@ describe('LoginComponent', () => {
     tick();
     component.login.setValue({ email: 'a@b.dev', password: mockPass });
     component.handleSubmit();
-    tick(1500);
+    tick();
     expect(router.navigateByUrl).toHaveBeenCalledWith('/cart');
   }));
 
@@ -79,7 +80,7 @@ describe('LoginComponent', () => {
     setup('//evil.example');
     tick();
     component.loginAsDemo();
-    tick(1500);
+    tick();
     expect(router.navigateByUrl).toHaveBeenCalledWith('/home');
   }));
 
@@ -87,7 +88,7 @@ describe('LoginComponent', () => {
     setup('/cart');
     tick();
     component.loginAsDemo();
-    tick(1500);
+    tick();
     expect(router.navigateByUrl).toHaveBeenCalledWith('/cart');
   }));
 
@@ -96,7 +97,7 @@ describe('LoginComponent', () => {
     tick();
     fixture.nativeElement.querySelector('[data-testid="demo-login"]').click();
     expect(srv.loginUser).toHaveBeenCalledWith({ ...DEMO_CREDENTIALS });
-    tick(1500);
+    tick();
     expect(router.navigateByUrl).toHaveBeenCalledWith('/home');
   }));
 
