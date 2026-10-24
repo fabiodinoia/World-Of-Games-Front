@@ -12,6 +12,13 @@
   <meta property="og:description" content="A video game store demo built with Angular and an Express + MongoDB API.">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="alternate icon" href="favicon.ico">
+  <!-- Fonts the first screen needs; stable URLs come from the fonts asset glob in angular.json -->
+  <link rel="preload" as="font" type="font/woff2" href="fonts/big-shoulders-display-latin-wght-normal.woff2" crossorigin>
+  <link rel="preload" as="font" type="font/woff2" href="fonts/figtree-latin-wght-normal.woff2" crossorigin>
+  <!-- Landing LCP: the globe poster is otherwise only found once the lazy landing chunk loads -->
+  <link rel="preload" as="image" href="assets/3d/globe-poster.webp" type="image/webp" fetchpriority="high">
+  <!-- Paint the page colour before the stylesheet arrives (no white flash on slow connections) -->
+  <style>html, body { background: #13102a; }</style>
 </head>
 <body>
   <app-root></app-root>

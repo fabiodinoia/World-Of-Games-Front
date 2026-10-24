@@ -30,7 +30,18 @@
             "assets": [
               "src/favicon.ico",
               "src/favicon.svg",
-              "src/assets"
+              "src/robots.txt",
+              "src/assets",
+              {
+                "glob": "*-latin{,-ext}-wght-normal.woff2",
+                "input": "node_modules/@fontsource-variable/big-shoulders-display/files",
+                "output": "fonts"
+              },
+              {
+                "glob": "*-latin{,-ext}-wght-normal.woff2",
+                "input": "node_modules/@fontsource-variable/figtree/files",
+                "output": "fonts"
+              }
             ],
             "styles": [
               "src/styles.scss"
@@ -52,6 +63,11 @@
                   "maximumError": "10kb"
                 }
               ],
+              "optimization": {
+                "scripts": true,
+                "styles": { "minify": true, "inlineCritical": false },
+                "fonts": true
+              },
               "outputHashing": "all"
             },
             "development": {
@@ -99,7 +115,18 @@
             "assets": [
               "src/favicon.ico",
               "src/favicon.svg",
-              "src/assets"
+              "src/robots.txt",
+              "src/assets",
+              {
+                "glob": "*-latin{,-ext}-wght-normal.woff2",
+                "input": "node_modules/@fontsource-variable/big-shoulders-display/files",
+                "output": "fonts"
+              },
+              {
+                "glob": "*-latin{,-ext}-wght-normal.woff2",
+                "input": "node_modules/@fontsource-variable/figtree/files",
+                "output": "fonts"
+              }
             ],
             "styles": [
               "src/styles.scss"
