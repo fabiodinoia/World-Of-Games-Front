@@ -1,5 +1,7 @@
 # World of Games — Frontend
 
+[![CI](https://github.com/fabiodinoia/World-Of-Games-Front/actions/workflows/ci.yml/badge.svg)](https://github.com/fabiodinoia/World-Of-Games-Front/actions/workflows/ci.yml)
+
 ![World of Games logo](./src/assets/WOG-logo1.png)
 
 Angular 21 storefront for **World of Games**, a marketplace to browse, publish and
