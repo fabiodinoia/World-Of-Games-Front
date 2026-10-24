@@ -12,15 +12,21 @@ import { WEBGL_SUPPORT } from 'src/app/shared/three/webgl-support';
   // The accessible name lives on the host so it survives the poster -> canvas swap.
   host: { role: 'img', '[attr.aria-label]': 'label()' },
   template: `
-    @if (!sceneReady()) {
-      <img class="three-host__poster" [src]="poster()" alt="" />
+    @if (!posterGone()) {
+      <img class="three-host__poster" [class.three-host__poster--off]="sceneReady()" [src]="poster()" alt=""
+           (transitionend)="posterGone.set(true)" />
     }
     <canvas #canvas class="three-host__canvas" [class.three-host__canvas--on]="sceneReady()" aria-hidden="true"></canvas>
   `,
+  // Crossfade: the canvas eases in on top while the poster eases out underneath (ease-in, so it
+  // stays mostly opaque early and the combined image never dips), then the poster is removed.
   styles: `
-    :host { position: relative; display: block; }
-    .three-host__poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
-    .three-host__canvas { width: 100%; height: 100%; opacity: 0; transition: opacity var(--dur-slow) var(--ease-out); }
+    :host { position: relative; display: block; --swap: 900ms; }
+    .three-host__poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain;
+      transition: opacity var(--swap) cubic-bezier(0.7, 0, 1, 1); }
+    .three-host__poster--off { opacity: 0; }
+    .three-host__canvas { position: relative; display: block; width: 100%; height: 100%; opacity: 0;
+      transition: opacity var(--swap) var(--ease-out); }
     .three-host__canvas--on { opacity: 1; }
   `,
 })
@@ -32,6 +38,8 @@ export class ThreeHostComponent implements OnDestroy {
   ready = output<SceneHandle>();
 
   protected sceneReady = signal(false);
+  /** Poster removed once its fade-out has finished (it stays, invisible, if transitions are off). */
+  protected posterGone = signal(false);
   private canvas = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
   private supportsWebgl = inject(WEBGL_SUPPORT);
   private handle: SceneHandle | null = null;

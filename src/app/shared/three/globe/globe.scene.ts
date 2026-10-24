@@ -95,6 +95,10 @@ const HALO_FRAGMENT = /* glsl */ `
 `;
 
 const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
+/** Spin speed ramps from 0 to full over this long after every start(), so the globe eases into
+ *  motion (first appearance, and resuming after a hover/focus pause) instead of jumping to speed. */
+const SPIN_RAMP_MS = 2000;
+const smoothstep = (t: number): number => t * t * (3 - 2 * t);
 
 /**
  * Tinted, spinning Earth for the landing hero.
@@ -177,6 +181,7 @@ export const createGlobeScene = async (
   /** Set by dispose(): every entry point no-ops afterwards (the context is lost). */
   let disposed = false;
   let lastTime = 0;
+  let rampStart = 0;
   let width = 0;
   let height = 0;
   let lastPoints: ScreenPoint[] | null = null;
@@ -219,7 +224,9 @@ export const createGlobeScene = async (
     const self = raf;
     const dt = lastTime ? Math.min(now - lastTime, MAX_DT_MS) : 0;
     lastTime = now;
-    if (!dragging) spin += SPIN_PER_MS * dt;
+    if (!rampStart) rampStart = now;
+    const ramp = smoothstep(Math.min(1, (now - rampStart) / SPIN_RAMP_MS));
+    if (!dragging) spin += SPIN_PER_MS * dt * ramp;
     if (ease) {
       const t = Math.min(1, (now - ease.start) / RELEASE_EASE_MS);
       tilt = ease.from + (TILT_DEFAULT - ease.from) * easeOutCubic(t);
@@ -260,6 +267,7 @@ export const createGlobeScene = async (
       if (disposed || running) return;
       running = true;
       lastTime = 0;
+      rampStart = 0;
       raf = requestAnimationFrame(frame);
     },
     stop: () => {

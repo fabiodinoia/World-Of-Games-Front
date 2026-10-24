@@ -5,6 +5,19 @@
   pointer-events: none;
 }
 
+/* Pins arrive with the 3D globe: fade in alongside the poster -> canvas crossfade. */
+@media (prefers-reduced-motion: no-preference) {
+  :host {
+    animation: globe-pins-in 900ms var(--ease-out) both;
+  }
+}
+
+@keyframes globe-pins-in {
+  from {
+    opacity: 0;
+  }
+}
+
 /* 24px hit target centred on the projected point (translate sets the centre). */
 .globe-pin {
   position: absolute;
