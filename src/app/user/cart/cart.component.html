@@ -1,20 +1,60 @@
-<img class="background" alt="home-background" class="image" src="./../../../assets/background3.png">
-<div class="user-info" *ngIf="this.currentUser$ | async as user">
-  <h2>My Cart</h2>
-  <div class="user-games">
-    <ul>
-      <li *ngFor="let game of user.shopList">
-        <div class="game-info">
-          <img class="game-photo" src="{{ game.img }}" alt="Game Cover">
-          <div class="game-details">
-            <p>{{ game.gameName }}</p>
-            <p>{{ game.category }}</p>
-            <p>Release Date: {{ game.releaseDate }}</p>
-            <p>Price: {{ game.price }}€</p>
-          </div>
-        </div>
-        <mat-icon (click)="removeGame(game)">remove_shopping_cart</mat-icon>
-      </li>
-    </ul>
-  </div>
+<div class="page">
+  @if (currentUser$ | async; as user) {
+    <header class="page-head">
+      <div>
+        <h1>Cart</h1>
+        <p class="page-head__lede">
+          @if (user.cart?.length === 1) { 1 game } @else { {{ user.cart?.length ?? 0 }} games }
+        </p>
+      </div>
+    </header>
+
+    @if (user.cart?.length) {
+      <div class="cart">
+        <ul class="cart__list">
+          @for (game of user.cart; track $index) {
+            <li class="line">
+              <a class="line__cover cover-link" [routerLink]="['/games', game.id]" tabindex="-1" aria-hidden="true" appCoverMorph>
+                <div class="cover"><img [src]="game.img" alt="" loading="lazy" width="96" height="128"></div>
+              </a>
+              <div class="line__info">
+                <a class="line__name" [routerLink]="['/games', game.id]">{{ game.gameName }}</a>
+                <span class="genre">{{ game.category }}</span>
+              </div>
+              <app-price class="line__price" [value]="game.price" />
+              <button type="button" class="btn btn--ghost btn--sm line__remove" (click)="removeGame(game)"
+                [attr.aria-label]="'Remove ' + game.gameName + ' from cart'">
+                <app-icon name="close" />
+                <span class="line__remove-label">Remove</span>
+              </button>
+            </li>
+          }
+        </ul>
+
+        <aside class="summary sheet" aria-labelledby="summary-title">
+          <h2 id="summary-title" class="summary__title">Order summary</h2>
+          <dl class="summary__rows">
+            <div><dt>Games</dt><dd>{{ user.cart?.length }}</dd></div>
+            <div class="summary__total"><dt>Total</dt><dd>{{ getTotal(user.cart) | currency: 'EUR' }}</dd></div>
+          </dl>
+          <button class="btn btn--primary btn--lg btn--block" type="button" disabled aria-describedby="checkout-note">
+            Checkout
+          </button>
+          <p class="summary__note" id="checkout-note">Payments aren't part of this demo, so checkout is switched off.</p>
+          <a class="text-link summary__more" routerLink="/games">Keep browsing</a>
+        </aside>
+      </div>
+    } @else {
+      <div class="empty">
+        <h2>Your cart is empty</h2>
+        <p>Find something to play: every game page has an Add to cart button.</p>
+        <a class="btn btn--primary" routerLink="/games">Browse games</a>
+      </div>
+    }
+  } @else {
+    <div class="page-head" aria-busy="true">
+      <div class="skeleton" style="height: 3rem; width: 160px"></div>
+    </div>
+    <div class="skeleton" style="height: 128px; max-width: 760px"></div>
+  }
 </div>

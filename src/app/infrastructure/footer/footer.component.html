@@ -1,15 +1,41 @@
-<div class="menu" *ngIf="currentPage !== '/home' && currentPage !== '/login' && isLogged !== '' && currentPage !== '/'">
-  <ng-content></ng-content>
-</div>
-<div class="login" *ngIf="currentPage === '/login'">
-  <p>Don't have an account yet? <span routerLink="/register">Register</span></p>
-</div>
-<div class="login" *ngIf="currentPage === '/register' && isLogged === ''">
-  <p>You already have an account? <span routerLink="/login">Login</span></p>
-</div>
-<div class="login" *ngIf="currentPage ===  '/home' ">
-  <p>Don't have an account yet? <span routerLink="/register">Register</span></p>
-</div>
-<div class="login" *ngIf="currentPage ===  '/' ">
-  <p>Don't have an account yet? <span routerLink="/register">Register</span></p>
-</div>
+<footer class="foot">
+  <div class="foot__inner page">
+    <div class="foot__brand">
+      <p class="foot__name">World of Games</p>
+      <p class="foot__note">
+        A portfolio project by Fabio: Angular storefront, Express + MongoDB API.
+        Cover art belongs to its publishers and is shown for demo purposes.
+      </p>
+      @if (currentPage() === '/login') {
+        <p class="foot__hint">Don't have an account yet? <a routerLink="/register" class="text-link">Register</a></p>
+      }
+      @if (currentPage() === '/register' && !isLogged()) {
+        <p class="foot__hint">Already have an account? <a routerLink="/login" class="text-link">Sign in</a></p>
+      }
+      @if ((currentPage() === '/home' || currentPage() === '/') && !isLogged()) {
+        <p class="foot__hint">Don't have an account yet? <a routerLink="/register" class="text-link">Register</a></p>
+      }
+    </div>
+
+    @if (isLogged()) {
+      <nav class="foot__col" aria-label="Genres">
+        <p class="foot__heading">Browse</p>
+        <a routerLink="/games">All games</a>
+        @for (genre of genres; track genre) {
+          <a routerLink="/games" [queryParams]="{ category: genre }">{{ genre }}</a>
+        }
+      </nav>
+    }
+
+    <nav class="foot__col" aria-label="Account">
+      <p class="foot__heading">Account</p>
+      @if (isLogged()) {
+        <a routerLink="/cart">Cart</a>
+        <a routerLink="/games/create">Sell a game</a>
+      } @else {
+        <a routerLink="/login">Sign in or try the demo</a>
+        <a routerLink="/register">Create an account</a>
+      }
+    </nav>
+  </div>
+</footer>

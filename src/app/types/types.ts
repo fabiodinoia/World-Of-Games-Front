@@ -1,15 +1,22 @@
+import { gameCategory } from './categories';
+
 export type User = {
   id?: string;
   name: string;
   email: string;
   password: string;
   img: string;
-  shopList?: Game[];
+  cart?: Game[];
   myGames?: Game[];
   address?: string;
 };
 
-export type gameCategory = 'MOBA' | 'RPG' | 'MMO' | 'FPS' | 'Action';
+/** Payload for PUT /users/:id — the API stores cart/library entries as game ids. */
+export type UserUpdate = Partial<Omit<User, 'cart' | 'myGames'>> & {
+  cart?: string[];
+};
+
+export type { gameCategory } from './categories';
 
 export type Game = {
   id?: string;
@@ -18,7 +25,8 @@ export type Game = {
   releaseDate: string;
   img: string;
   price: number;
-  owner?: Partial<User>;
+  /** Populated user object, or a bare user id depending on the endpoint. */
+  owner?: Partial<User> | string;
   description: string;
 };
 

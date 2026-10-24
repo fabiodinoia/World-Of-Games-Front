@@ -1,18 +1,96 @@
-<img alt="home-background" class="image" src="./../../../assets/background3.png">
-<h1>Details</h1>
-<div class="background">
-  <section class="game-detail">
-    <div class="game-image">
-      <img src="{{game.img}}" alt="{{game.gameName}}" />
+@if (game(); as game) {
+  <article class="detail-page">
+    <div class="detail-page__banner" aria-hidden="true">
+      <img [src]="game.img" alt="">
     </div>
-    <div class="game-info">
-      <h2 class="game-name">{{game.gameName}}</h2>
-      <p class="game-category">{{game.category}}</p>
-      <p class="game-release-date">Released on: {{game.releaseDate}}</p>
-      <p class="game-price">Price: {{game.price}}€</p>
+
+    <div class="page">
+      <a class="detail-page__back" routerLink="/games">
+        <app-icon name="arrow-left" />
+        All games
+      </a>
+
+      <div class="detail-page__content">
+        <div class="detail-page__cover cover" [class.detail-page__cover--live]="!!caseHandle()"
+          (pointerdown)="onCaseDragStart($event)"
+          (pointermove)="onCaseDrag($event)" (pointerup)="onCaseDragEnd($event)" (pointercancel)="onCaseDragEnd($event)">
+          <!-- Stays rendered: view-transition morph target and fly-to-cart origin. -->
+          <img [src]="game.img" [alt]="'Cover art for ' + game.gameName" width="480" height="640"
+            loading="eager" fetchpriority="high">
+          @if (isDesktop()) {
+            <app-three-host class="detail-page__case" [sceneLoader]="loadCase"
+              poster="assets/3d/game-case-poster.png" label="3D game case, drag to rotate"
+              (ready)="caseHandle.set($event)" />
+          }
+        </div>
+
+        <div class="detail-page__info">
+          <a class="chip" routerLink="/games" [queryParams]="{ category: game.category }">{{ game.category }}</a>
+          <h1 class="detail-page__title">{{ game.gameName }}</h1>
+          <dl class="detail-page__facts">
+            @if (releaseDate()) {
+              <div><dt>Released</dt><dd>{{ releaseDate() }}</dd></div>
+            }
+            @if (sellerName()) {
+              <div><dt>Listed by</dt><dd>{{ sellerName() }}</dd></div>
+            }
+          </dl>
+
+          @if (game.description) {
+            <p class="detail-page__description">{{ game.description }}</p>
+          }
+
+          <div class="detail-page__purchase">
+            <app-price [value]="game.price" size="lg" />
+            <button class="btn btn--primary btn--lg" type="button" (click)="addToCart($event)" [disabled]="isAdding()"
+              [attr.aria-busy]="isAdding()">
+              <app-icon name="cart-add" />
+              {{ isAdding() ? 'Adding...' : justAdded() ? 'Added ✓' : 'Add to cart' }}
+            </button>
+          </div>
+
+          @if (isOwner()) {
+            <div class="detail-page__owner-actions">
+              <p class="detail-page__owner-note">You listed this game.</p>
+              <button class="btn btn--outline btn--sm" type="button" (click)="editGame()">
+                <app-icon name="edit" />
+                Edit listing
+              </button>
+              <button class="btn btn--danger btn--sm" type="button" (click)="requestDelete()" [disabled]="isDeleting()">
+                <app-icon name="trash" />
+                Delete
+              </button>
+            </div>
+          }
+        </div>
+      </div>
     </div>
-  </section>
-  <div class="description">
-    <p class="game-description">{{game.description}}</p>
+
+    @if (isOwner()) {
+      <app-confirm-dialog [open]="confirmOpen()" [busy]="isDeleting()"
+        [heading]="'Delete ' + game.gameName + '?'"
+        message="The listing is removed from the store for everyone. This can't be undone."
+        confirmLabel="Delete listing" (confirmed)="deleteGame()" (cancelled)="cancelDelete()" />
+    }
+  </article>
+} @else if (notFound()) {
+  <div class="page">
+    <div class="empty">
+      <h1>Game not found</h1>
+      <p>This game doesn't exist (anymore). It may have been removed by the seller.</p>
+      <a class="btn btn--light" routerLink="/games">Browse all games</a>
+    </div>
   </div>
-</div>
+} @else {
+  <div class="page" aria-busy="true">
+    <div class="detail-page__content detail-page__content--loading">
+      <div class="cover skeleton"></div>
+      <div class="detail-page__info">
+        <div class="skeleton" style="height: 2rem; width: 90px"></div>
+        <div class="skeleton" style="height: 4rem; width: 80%"></div>
+        <div class="skeleton" style="height: 1rem; width: 40%"></div>
+        <div class="skeleton" style="height: 5rem; width: 100%"></div>
+      </div>
+    </div>
+  </div>
+}

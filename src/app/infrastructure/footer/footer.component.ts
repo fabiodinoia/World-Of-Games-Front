@@ -1,32 +1,28 @@
-import { Component, OnInit } from '@angular/core';
-import { Router, Event, NavigationEnd } from '@angular/router';
-import { filter } from 'rxjs/operators';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+} from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { RouterLink } from '@angular/router';
 import { RepoUserService } from 'src/app/services/user/user.service';
+import { currentUrl } from '../navigation';
+import { gameCategory } from 'src/app/types/categories';
 
 @Component({
   selector: 'app-footer',
   templateUrl: './footer.component.html',
   styleUrls: ['./footer.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink],
 })
-export class FooterComponent implements OnInit {
-  currentPage: string = '/';
-  isLogged: string | undefined = '';
-  constructor(private router: Router, public srv: RepoUserService) {
-    this.srv.userLogged$.subscribe((user) => {
-      this.isLogged = user?.id;
-    });
-  }
+export class FooterComponent {
+  private readonly loggedUser = toSignal(inject(RepoUserService).userLogged$, {
+    requireSync: true,
+  });
 
-  ngOnInit(): void {
-    this.router.events
-      .pipe(
-        filter(
-          (event: Event): event is NavigationEnd =>
-            event instanceof NavigationEnd
-        )
-      )
-      .subscribe((event: NavigationEnd) => {
-        this.currentPage = event.url;
-      });
-  }
+  readonly genres: readonly gameCategory[] = ['Action', 'RPG', 'Sports', 'Indie'];
+  readonly currentPage = currentUrl();
+  readonly isLogged = computed(() => !!this.loggedUser()?.id);
 }

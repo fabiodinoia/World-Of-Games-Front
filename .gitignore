@@ -40,3 +40,18 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+.agents/
+.agent/
+.claude/
+.cursor/
+
+# Local env / generated config (see .env.example)
+.env
+.env.*
+!.env.example
+src/environments/.env
+src/environments/environment.ts
+
+# Local design-review screenshots (not part of the app)
+design-review/

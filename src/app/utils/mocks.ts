@@ -4,6 +4,7 @@ import {
   ServerLoginResponse,
 } from '../types/server.response';
 import { Game, LoggedUser, Login, User } from '../types/types';
+import { environment } from 'src/environments/environment';
 
 export const mockPass = 'pass';
 
@@ -42,7 +43,7 @@ export const mockUser: User = {
   email: 'johndoe@example.com',
   password: mockPass,
   img: '',
-  shopList: [mockGame, mockGame1],
+  cart: [mockGame, mockGame1],
 };
 export const mockUser3: User = {
   id: '6789',
@@ -50,7 +51,7 @@ export const mockUser3: User = {
   email: 'Fab@example.com',
   password: mockPass,
   img: '',
-  shopList: [mockGame, mockGame1],
+  cart: [mockGame, mockGame1],
 };
 
 export const mockLogged: LoggedUser = {
@@ -69,59 +70,6 @@ export const mockRouteParam = {
 
 export const mockToken =
   'eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.eyJpZCI6IiIsImVtYWlsIjoiIiwicm9sZSI6IiIsImlhdCI6MTY3OTA0ODgwNH0.U8s8UMTJddjfXH_qbxiJJ5GuJeEhryxFmv8d8DBMsycVTt-k1sdAFEq9yRUXbawo';
-
-export const mockUserService = {
-  loginUser: () => {
-    return new BehaviorSubject<string>('TestToken');
-  },
-  initialToken: () => {
-    return;
-  },
-  registerUser: () => {
-    return new Observable<User>();
-  },
-  getCurrentUser: () => {
-    return new Observable<User>();
-  },
-  updateUser: (id: string, user: User) => {
-    return new Observable<User>();
-  },
-  deleteUser: () => {
-    return of({});
-  },
-  userLogged$: new BehaviorSubject<LoggedUser>(mockLogged),
-  token$: new BehaviorSubject<string>('TestToken'),
-  currentUser$: new BehaviorSubject<User>(mockUser),
-};
-
-export const mockGameService = {
-  createGame: () => {
-    return of({});
-  },
-
-  updateGame: () => {
-    return of({
-      gameName: 'Test Game',
-      releaseDate: '2022-01-01',
-      category: 'Action',
-      price: 59.99,
-      description: 'Test description',
-      img: 'test.png',
-    });
-  },
-
-  deleteGame: () => {
-    return of({});
-  },
-
-  queryGame: (category: string) => {
-    return of([{} as Game]);
-  },
-
-  gameInfo$: new BehaviorSubject<Game>(mockGame),
-  token: { results: { token: '' } },
-  currentUser$: new BehaviorSubject<User>({} as User),
-};
 
 export const mockGametoUp = {
   id: '123456',
@@ -207,5 +155,40 @@ export const mockTestData = [
   },
 ] as unknown as Game[];
 
-export const TestApiUserUrl = 'https://wog-backend.onrender.com/users';
-export const TestApiGameUrl = 'https://wog-backend.onrender.com/games/';
+export const TestApiUserUrl = `${environment.apiUrl}/users`;
+export const TestApiGameUrl = `${environment.apiUrl}/games/`;
+
+/** Fresh RepoUserService double per test (avoids state leaking between specs). */
+export const createUserServiceMock = (logged: LoggedUser = mockLogged) => ({
+  loginUser: jasmine.createSpy('loginUser').and.returnValue(of(mockToken)),
+  registerUser: jasmine.createSpy('registerUser').and.returnValue(of(mockUser)),
+  getCurrentUser: jasmine
+    .createSpy('getCurrentUser')
+    .and.returnValue(of(mockUser)),
+  updateUser: jasmine.createSpy('updateUser').and.returnValue(of(mockUser)),
+  deleteUser: jasmine.createSpy('deleteUser').and.returnValue(of(undefined)),
+  addToCart: jasmine.createSpy('addToCart').and.returnValue(of(mockUser)),
+  logout: jasmine.createSpy('logout'),
+  restoreSession: jasmine.createSpy('restoreSession'),
+  userLogged$: new BehaviorSubject<LoggedUser>(logged),
+  token$: new BehaviorSubject<string>(logged.id ? 'TestToken' : ''),
+  currentUser$: new BehaviorSubject<User>(mockUser),
+});
+
+/** Fresh RepoGameService double per test. */
+export const createGameServiceMock = () => ({
+  createGame: jasmine.createSpy('createGame').and.returnValue(of(mockGame)),
+  updateGame: jasmine.createSpy('updateGame').and.returnValue(of(mockGame)),
+  deleteGame: jasmine.createSpy('deleteGame').and.returnValue(of(undefined)),
+  loadGame: jasmine.createSpy('loadGame').and.returnValue(of(mockGame)),
+  loadAllGames: jasmine
+    .createSpy('loadAllGames')
+    .and.returnValue(of([mockGame, mockGame1])),
+  queryGame: jasmine
+    .createSpy('queryGame')
+    .and.returnValue(of([mockGame, mockGame1])),
+  cachedGame: jasmine.createSpy('cachedGame').and.returnValue(undefined),
+  gameInfo$: new BehaviorSubject<Game>({} as Game),
+  /** Catalog snapshot; empty by default so consumers fall back to loadAllGames(). */
+  games$: new BehaviorSubject<Game[]>([]),
+});

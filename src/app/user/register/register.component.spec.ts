@@ -1,203 +1,110 @@
 import {
-  mockEvent,
-  mockRoute,
-  mockUser,
-  mockUserService,
-} from './../../utils/mocks';
-import {
   ComponentFixture,
-  fakeAsync,
   TestBed,
+  fakeAsync,
   tick,
 } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { RouterTestingModule } from '@angular/router/testing';
-import { of, throwError } from 'rxjs';
-
-import { RegisterComponent } from './register.component';
+import { Router, provideRouter } from '@angular/router';
+import { ImageUploadService } from 'src/app/services/image/image-upload.service';
 import { RepoUserService } from 'src/app/services/user/user.service';
-import { ActivatedRoute } from '@angular/router';
 import { User } from 'src/app/types/types';
-import {
-  getStorage,
-  provideStorage,
-  ref,
-  StorageReference,
-} from '@angular/fire/storage';
-import { provideFirebaseApp } from '@angular/fire/app';
-import { initializeApp } from 'firebase/app';
-import { environment } from 'src/environments/environment';
-import { HttpClientModule } from '@angular/common/http';
-import { UserDetailComponent } from '../detail/detail.component';
+import { createUserServiceMock, mockUser } from 'src/app/utils/mocks';
+import { RegisterComponent } from './register.component';
 
 describe('RegisterComponent', () => {
-  let component: RegisterComponent;
   let fixture: ComponentFixture<RegisterComponent>;
-  let srv: RepoUserService;
+  let component: RegisterComponent;
+  let srv: ReturnType<typeof createUserServiceMock>;
+  let router: Router;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      declarations: [RegisterComponent],
-      imports: [
-        ReactiveFormsModule,
-        HttpClientModule,
-        RouterTestingModule.withRoutes([
-          { path: 'login', component: RegisterComponent },
-          { path: 'user/:12345', component: UserDetailComponent },
-        ]),
-        provideFirebaseApp(() => initializeApp(environment.firebase)),
-        provideStorage(() => getStorage()),
-      ],
+  let images: jasmine.SpyObj<ImageUploadService>;
+
+  const setup = async (current: Partial<User> = {}) => {
+    srv = createUserServiceMock();
+    images = jasmine.createSpyObj<ImageUploadService>('images', ['upload']);
+    images.upload.and.resolveTo('https://cdn/avatar.png');
+    srv.currentUser$.next(current as User);
+    await TestBed.configureTestingModule({
+      imports: [ReactiveFormsModule, RegisterComponent],
       providers: [
-        { provide: RepoUserService, useValue: mockUserService },
-        { provide: ActivatedRoute, useValue: mockRoute },
+        provideRouter([]),
+        { provide: RepoUserService, useValue: srv },
+        { provide: ImageUploadService, useValue: images },
       ],
     }).compileComponents();
-  });
-
-  beforeEach(() => {
     fixture = TestBed.createComponent(RegisterComponent);
     component = fixture.componentInstance;
-    srv = TestBed.inject(RepoUserService);
-    component.userToUpdate = {} as unknown as User;
+    router = TestBed.inject(Router);
+    spyOn(router, 'navigate').and.resolveTo(true);
     fixture.detectChanges();
+  };
+
+  it('does not register with an invalid form', async () => {
+    await setup();
+    await component.handleSubmit();
+    expect(srv.registerUser).not.toHaveBeenCalled();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-
-  describe('As we have a game to update', () => {
-    it('Should call the RepoUserService service and next', fakeAsync(() => {
-      const newSpyGame = spyOn(srv, 'updateUser').and.returnValue(of(mockUser));
-      const spyZoneRun = spyOn(component.zone, 'run').and.callThrough();
-
-      srv.currentUser$.next(mockUser);
-      component.isUpdate = true;
-      component.saveImage(mockEvent);
-      const upSpyLoad = spyOn(component, 'uploadImage').and.resolveTo();
-      const spyGetImage = spyOn(component, 'getImage').and.resolveTo('mock');
-      component.ngOnInit();
-      component.handleSubmit();
-      tick(2000);
-      expect(upSpyLoad).toHaveBeenCalled();
-      expect(spyGetImage).toHaveBeenCalled();
-
-      expect(newSpyGame).toHaveBeenCalled();
-      expect(spyZoneRun).toHaveBeenCalled();
-      expect(component.isSuccess).toBeFalse();
-      expect(component.isError).toBeFalse();
-      expect(component.router.url).toBe(`/user/:${mockUser.id}`);
-    }));
-  });
-
-  describe('Given the handleSubmit method', () => {
-    describe('When called with correct data', () => {
-      it('Should call the RepoGameService service and next', fakeAsync(() => {
-        const spyNewUser = spyOn(srv, 'registerUser').and.returnValue(
-          of(mockUser)
-        );
-        const zoneSpyRun = spyOn(component.zone, 'run').and.callThrough();
-
-        srv.currentUser$.next({} as unknown as User);
-        component.userToUpdate = {} as any;
-        component.isUpdate = false;
-        component.saveImage(mockEvent);
-        const spyUpload = spyOn(component, 'uploadImage').and.resolveTo();
-        const getSpyImage = spyOn(component, 'getImage').and.resolveTo('mock');
-        component.handleSubmit();
-        tick(2000);
-        expect(spyUpload).toHaveBeenCalled();
-        expect(getSpyImage).toHaveBeenCalled();
-        expect(spyNewUser).toHaveBeenCalled();
-        expect(zoneSpyRun).toHaveBeenCalled();
-        expect(component.isSuccess).toBeFalse();
-        expect(component.isError).toBeFalse();
-        expect(component.router.url).toBe('/login');
-      }));
+  it('registers a new user and goes to login', fakeAsync(() => {
+    setup();
+    tick();
+    component.newUser.setValue({
+      name: 'Neo',
+      email: 'neo@matrix.dev',
+      password: 'secret123',
+      img: '',
     });
+    component.handleSubmit();
+    tick();
+    expect(srv.registerUser).toHaveBeenCalledWith(
+      jasmine.objectContaining({ email: 'neo@matrix.dev', img: '' }),
+    );
+    tick(1500);
+    expect(router.navigate).toHaveBeenCalledWith(['/login']);
+  }));
 
-    describe('(ERROR)When the createUser method returns an error', () => {
-      it('Should display error message', fakeAsync(() => {
-        spyOn(srv, 'registerUser').and.returnValue(throwError(() => 'error'));
+  it('edits the current user when one is loaded', fakeAsync(() => {
+    setup(mockUser);
+    tick();
+    expect(component.isUpdate).toBeTrue();
+    expect(component.newUser.value.email).toBe(mockUser.email);
+    component.handleSubmit();
+    tick(1500);
+    expect(srv.updateUser).toHaveBeenCalledWith(
+      mockUser.id as string,
+      jasmine.any(Object),
+    );
+    expect(router.navigate).toHaveBeenCalledWith([`/user/${mockUser.id}`]);
+  }));
 
-        srv.currentUser$.next({} as unknown as User);
-        component.userToUpdate = {} as any;
-        component.saveImage(mockEvent);
-        const spyUpload = spyOn(component, 'uploadImage').and.resolveTo();
-        const spyGetImage = spyOn(component, 'getImage').and.resolveTo('mock');
-        component.ngOnInit();
-        component.handleSubmit();
-        tick(2000);
-
-        expect(spyUpload).toHaveBeenCalled();
-        expect(spyGetImage).toHaveBeenCalled();
-        expect(component.isSuccess).toBeFalse();
-        expect(component.isError).toBeFalse();
-      }));
+  it('uploads the avatar before registering', fakeAsync(() => {
+    setup();
+    tick();
+    const file = new File(['x'], 'me.png', { type: 'image/png' });
+    component.saveImage({ target: { files: [file] } } as unknown as Event);
+    component.newUser.setValue({
+      name: 'Neo',
+      email: 'neo@matrix.dev',
+      password: 'secret123',
+      img: '',
     });
-    describe('(ERROR)When the updateUser method returns an error', () => {
-      it('Will display error message', fakeAsync(() => {
-        spyOn(srv, 'updateUser').and.returnValue(throwError(() => 'error'));
+    component.handleSubmit();
+    tick();
+    expect(images.upload).toHaveBeenCalledWith('avatars/neo@matrix.dev', file);
+    expect(srv.registerUser).toHaveBeenCalledWith(
+      jasmine.objectContaining({ img: 'https://cdn/avatar.png' }),
+    );
+    tick(1500);
+  }));
 
-        component.isUpdate = true;
-        component.saveImage(mockEvent);
-        const uploadSpy = spyOn(component, 'uploadImage').and.resolveTo();
-        const getImageSpy = spyOn(component, 'getImage').and.resolveTo('mock');
-        component.ngOnInit();
-        component.handleSubmit();
-        tick(2000);
-
-        expect(uploadSpy).toHaveBeenCalled();
-        expect(getImageSpy).toHaveBeenCalled();
-        expect(component.isSuccess).toBeFalse();
-        expect(component.isError).toBeFalse();
-      }));
-    });
-
-    describe('As we select the getImage ', () => {
-      it('So it should return the string', () => {
-        const mockStorage = {} as StorageReference;
-        const getSpy = spyOn(component, 'getImage').and.callFake(() => {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          return new Promise((_resolve, _reject) => {
-            return '';
-          });
-        });
-        component.getImage(mockStorage);
-        expect(getSpy).toHaveBeenCalled();
-      });
-    });
-
-    describe('When the submitButtonLabel', () => {
-      it('should return "Create" when gameToUpdate is falsy', () => {
-        component.userToUpdate = null as unknown as User;
-        expect(component.submitButtonLabel).toEqual('Register');
-      });
-
-      it('should return "Save" when gameToUpdate is truthy', () => {
-        component.userToUpdate = {
-          id: '1',
-          name: 'Test Game',
-        } as unknown as User;
-        expect(component.submitButtonLabel).toEqual('Save');
-      });
-    });
-  });
-
-  describe('If we call the uploadImage ', () => {
-    it('Then it should uploadBytes', async () => {
-      const testRef = ref(component['storage'], 'testing');
-      const file = new File(['test'], 'test.png', { type: 'image/png' });
-
-      spyOn(component, 'uploadImage').and.callThrough();
-
-      await component.uploadImage(testRef, file);
-
-      const downloadUrl = await component.getImage(testRef);
-
-      expect(component.uploadImage).toHaveBeenCalled();
-      expect(downloadUrl).toBeTruthy();
-    });
-  });
+  it('does not send a blank password or wipe the avatar on edit', fakeAsync(() => {
+    setup({ ...mockUser, img: 'https://cdn/old.png' });
+    tick();
+    component.handleSubmit();
+    tick(1500);
+    const sent = srv.updateUser.calls.mostRecent().args[1];
+    expect(sent.password).toBeUndefined();
+    expect(sent.img).toBe('https://cdn/old.png');
+  }));
 });

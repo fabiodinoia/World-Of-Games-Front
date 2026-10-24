@@ -1,9 +1,6 @@
-<app-header class="header"></app-header>
-<main>
-<div class="margin">
-<ng-content></ng-content>
-</div>
+<a class="skip-link" href="#main" (click)="skipToMain($event, main)">Skip to content</a>
+<app-header class="layout-header"></app-header>
+<main id="main" #main tabindex="-1">
+  <ng-content></ng-content>
 </main>
-<app-footer class="footer">
-  <app-menu></app-menu>
-</app-footer>
+<app-footer class="layout-footer"></app-footer>

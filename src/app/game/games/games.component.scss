@@ -1,112 +1,109 @@
-.image {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vh;
-  height: 100%;
-  object-fit: cover;
-  z-index: -1;
+:host {
+  display: block;
 }
 
-/* Style for the category select */
-.game-category {
-  align-items: center;
-}
-
-#category-select {
+.filters {
   display: flex;
-  gap: 10px;
-  -moz-appearance: none;
-  appearance: none;
-  background-color: grey;
-  height: 2rem;
-  width: 17rem;
-  text-decoration: none;
-  color: white;
-  font-size: 24px;
-  padding-left: 1rem;
-}
-#labelt {
-  font-size: 32px;
-  color: white;
-  padding-bottom: 0.5rem;
-}
-/* Style for the category select options */
-#category-select option {
-  background-color: #31312c; /* Change this to your preferred background color */
-  color: white;
-  border-radius: 5px;
-  padding: 5px 10px;
-  font-size: 18px;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding-bottom: var(--space-5);
+  margin-bottom: var(--space-5);
+  border-bottom: 1px solid rgb(255 255 255 / 6%);
 }
 
-ul {
-  list-style: none;
+.grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-6) clamp(1rem, 2vw, 1.75rem);
+  margin: 0;
   padding: 0;
-  margin: 0;
-  margin-bottom: 10rem;
+  list-style: none;
 }
 
-li {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  overflow: hidden;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.3s ease-in-out;
-  background-color: rgba(255, 255, 255, 0.8);
-}
-
-li:hover {
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-a {
-  text-decoration: none;
-  color: black;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  width: 100%;
-}
-
-.game-img {
-  width: 200px;
-  height: 200px;
-  object-fit: cover;
-}
-
-div {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-}
-
-p {
-  margin: 0;
-  font-size: 23px;
-  line-height: 1.4;
-}
-
-p:first-child {
-  font-weight: bold;
-  font-size: 35px;
-  margin-bottom: 5px;
-}
-
-p:last-child {
-  font-size: 21px;
-  font-weight: bold;
-  margin-top: auto;
-}
-
-mat-icon {
-  color: black;
-  width: 80px;
+.game-card {
   position: relative;
-  top: 60px;
-  font-size: 50px;
-  height: 50px;
+  min-width: 0;
+}
+
+.game-card__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+/* Quick add: revealed on hover/focus, always present on touch screens */
+.game-card__add {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  z-index: 1;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-out);
+  box-shadow: 0 6px 16px rgb(0 0 0 / 45%);
+
+  /* Slides in from the cover's edge, riding the cover's hover lift */
+  @media (prefers-reduced-motion: no-preference) {
+    transform: translate3d(10px, 0, 0) scale(0.85);
+    transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-base) var(--ease-out);
+
+    .game-card:hover &,
+    .game-card:focus-within & {
+      transform: translate3d(0, -6px, 0);
+    }
+  }
+
+  .game-card:hover &,
+  .game-card:focus-within &,
+  &:focus-visible {
+    opacity: 1;
+  }
+
+  @media (hover: none) {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.empty__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+@media (max-width: 1100px) {
+  .grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--space-4);
+  }
+
+  /* Genre chips scroll sideways on phones instead of wrapping into a wall */
+  .filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin-inline: calc(var(--gutter) * -1);
+    padding-inline: var(--gutter);
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .game-card__meta {
+    flex-wrap: wrap;
+  }
 }

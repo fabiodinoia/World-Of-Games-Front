@@ -1,0 +1,157 @@
+/* Overlay sized to the globe canvas; only front pins take the pointer. */
+:host {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* 24px hit target centred on the projected point (translate sets the centre). */
+.globe-pin {
+  position: absolute;
+  top: -12px;
+  left: -12px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  pointer-events: auto;
+  will-change: transform;
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+}
+
+/* The labelled pin paints above its neighbours so their dots don't sit on the card. */
+.globe-pin--labelled {
+  z-index: 1;
+}
+
+.globe-pin--back {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.globe-pin__dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  margin: -3.5px 0 0 -3.5px;
+  border-radius: 50%;
+  background: var(--volt);
+
+  /* Pulse ring: grows from the dot and fades out (reference: r 3 -> 15, 900ms). Size animates
+     instead of scale so the stroke stays 1.5px like the reference, not 7.5px at the end. */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 6px;
+    height: 6px;
+    transform: translate(-50%, -50%);
+    border: 1.5px solid var(--volt);
+    border-radius: 50%;
+    animation: globe-pin-pulse 900ms linear infinite;
+  }
+}
+
+@keyframes globe-pin-pulse {
+  from {
+    width: 6px;
+    height: 6px;
+    opacity: 1;
+  }
+  to {
+    width: 30px;
+    height: 30px;
+    opacity: 0;
+  }
+}
+
+/* Card sits 12px right / 8px above the dot; ::before is the connector line. */
+.globe-pin__label {
+  position: absolute;
+  left: calc(50% + 12px);
+  bottom: calc(50% + 8px);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 5px 10px 6px;
+  border: 1px solid var(--volt);
+  border-radius: 6px;
+  background: rgb(19 16 42 / 92%);
+  white-space: nowrap;
+  line-height: 1.25;
+  animation: globe-pin-label-in var(--dur-base) var(--ease-out);
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: -1px;
+    bottom: -1px;
+    width: 14.4px; /* hypot(12, 8) */
+    height: 1px;
+    background: var(--volt);
+    transform-origin: 0 50%;
+    transform: rotate(146.31deg); /* atan2(8, -12): back down-left to the dot */
+  }
+}
+
+/* No room on the right (viewport edge): mirror the card to the left of the dot. */
+.globe-pin__label--left {
+  left: auto;
+  right: calc(50% + 12px);
+
+  &::before {
+    left: auto;
+    right: -1px;
+    transform-origin: 100% 50%;
+    transform: rotate(-146.31deg); /* back down-right to the dot */
+  }
+}
+
+/* No room on either side (narrow phones): card centred above the dot, vertical connector. */
+.globe-pin__label--center {
+  left: 50%;
+  bottom: calc(50% + 14px);
+  transform: translateX(-50%);
+
+  &::before {
+    left: 50%;
+    bottom: -11px;
+    width: 1px;
+    height: 10px;
+    transform: none;
+  }
+}
+
+.globe-pin__city {
+  color: var(--haze);
+  font-size: 11px;
+}
+
+.globe-pin__game {
+  color: var(--paper);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+@keyframes globe-pin-label-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .globe-pin__dot::after {
+    animation: none;
+    opacity: 0;
+  }
+
+  .globe-pin__label {
+    animation: none;
+  }
+}

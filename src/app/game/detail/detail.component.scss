@@ -1,81 +1,206 @@
-.game-detail {
+:host {
+  display: block;
+}
+
+.detail-page {
+  position: relative;
+  isolation: isolate;
+}
+
+/* Blurred cover art bleeding in behind the top of the page */
+.detail-page__banner {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: -1;
+  height: min(70vh, 560px);
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(56px) saturate(130%);
+    opacity: 0.5;
+    transform: scale(1.2);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgb(19 16 42 / 30%), var(--ink) 92%);
+  }
+}
+
+.detail-page__back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-5) 0;
+  color: var(--haze);
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--paper);
+  }
+}
+
+.detail-page__content {
+  display: grid;
+  grid-template-columns: minmax(240px, 400px) minmax(0, 1fr);
+  gap: clamp(1.5rem, 5vw, 4rem);
+  align-items: start;
+}
+
+.detail-page__content--loading {
+  padding-top: var(--space-8);
+}
+
+.detail-page__cover {
+  position: relative;
+  box-shadow: var(--shadow-sheet);
+  /* Horizontal drags rotate the 3D case; vertical swipes still scroll the page. */
+  touch-action: pan-y;
+  /* Target of the catalog → detail cover morph (shared/motion/cover-morph.ts) */
+  view-transition-name: game-cover;
+}
+
+/* Once the scene is live the flat art fades out so it can't peek around the case.
+   The img stays in the DOM: morph participant and fly-to-cart origin rect.
+   Desktop only: the case (and so the live class) never exists at <= 720px. */
+@media (min-width: 721px) {
+  .detail-page__cover img {
+    transition: opacity var(--dur-slow) var(--ease-out);
+  }
+
+  .detail-page__cover--live img {
+    opacity: 0;
+  }
+}
+
+/* Sits over the cover img, which stays beneath as morph target and fly-to-cart origin. */
+.detail-page__case {
+  position: absolute;
+  inset: 0;
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.detail-page__info {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start; // Align items to top of container
-  padding: 40px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+  padding-top: var(--space-2);
+}
 
-  .game-image {
-    margin-right: 50px;
+.detail-page__title {
+  font-size: var(--text-4xl);
+  font-weight: 900;
+  line-height: 0.88;
+}
 
-    img {
-      max-width: 100%;
-      height: auto;
-    }
+.detail-page__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-6);
+  margin: 0;
+
+  dt {
+    color: var(--haze);
+    font-size: var(--text-sm);
   }
 
-  .game-info {
-    width: calc(
-      40% - 50px
-    ); // Width is 40% of container minus margin from image
-  }
-
-  .game-info {
-    width: 60%;
-
-    .game-name {
-      font-size: 36px;
-      margin-bottom: 20px;
-    }
-
-    .game-category {
-      font-size: 20px;
-      margin-bottom: 10px;
-    }
-
-    .game-release-date,
-    .game-price {
-      font-size: 16px;
-      margin-bottom: 10px;
-    }
-
-    .game-description {
-      font-size: 18px;
-      line-height: 1.5;
-    }
+  dd {
+    margin: 0;
+    font-weight: 600;
   }
 }
-.description {
-  width: 100%; // Full width for description
-  margin-top: 40px;
+
+.detail-page__description {
+  max-width: 62ch;
+  font-size: var(--text-lg);
+  line-height: 1.6;
+  color: #d9d4f2;
 }
 
-.image {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vh; /* make the image full screen */
-  height: 100%; /* make the image full screen */
-  z-index: -1; /* put the image behind other elements */
+.detail-page__purchase {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-5);
+  margin-top: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  background: var(--night);
+  border-radius: var(--radius-sheet);
 }
 
-.background {
-  background-color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 10rem;
-  padding: 20px 20px 20px 20px;
-  border-radius: 20px;
+.detail-page__owner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding-top: var(--space-4);
+  border-top: 1px solid rgb(255 255 255 / 6%);
 }
 
-p {
-  font-size: 25px;
+.detail-page__owner-note {
+  margin-right: auto;
+  color: var(--haze);
+  font-size: var(--text-sm);
 }
 
-.game-price {
-  font-weight: bold;
-  font-size: 40px;
+@media (max-width: 720px) {
+  .detail-page__content {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-page__cover {
+    width: min(70%, 300px);
+  }
+
+  /* Mobile keeps the flat cover art; no 3D case below this breakpoint. */
+  .detail-page__case {
+    display: none;
+  }
+
+  .detail-page__purchase {
+    width: 100%;
+
+    .btn {
+      flex: 1;
+    }
+  }
 }
 
-h1 {
-  color: white;
-  text-align: center;
-  font-size: xxx-large;
+/* ── Motion ──
+   The price tag gets one settle as the buy box arrives; no repeat, no pulse. */
+@media (prefers-reduced-motion: no-preference) {
+  .detail-page__purchase app-price {
+    transform-origin: 0.4rem 50%;
+    animation: tag-settle 480ms var(--ease-out) 220ms backwards;
+  }
+
+  /* The case waits out the cover morph (::view-transition-new is a live capture),
+     so the catalog cover lands as cover art before the 3D case fades over it. */
+  .detail-page__case {
+    animation: case-in var(--dur-slow) var(--ease-out) var(--dur-slow) backwards;
+  }
+}
+
+@keyframes case-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .detail-page__cover {
+    view-transition-name: none;
+  }
 }

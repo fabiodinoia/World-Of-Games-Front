@@ -1,38 +1,132 @@
-<img class="background" alt="home-background" class="image" src="./../../../assets/backgroun2.jpg">
+<div class="page">
+  <header class="page-head">
+    <div>
+      <h1>{{ isUpdate ? 'Edit listing' : 'Sell a game' }}</h1>
+      <p class="page-head__lede">
+        {{ isUpdate ? 'Change the details buyers see on the game page.' : 'List a game in the store. Buyers see exactly what the preview shows.' }}
+      </p>
+    </div>
+  </header>
 
-<form class="register-form" [formGroup]="newGame" (ngSubmit)="handleSubmit()">
-  <div class="form-group">
-    <label for="name">Game name:</label>
-    <input type="text" formControlName="gameName">
+  <div class="editor">
+    <form class="editor__form sheet" [formGroup]="newGame" (ngSubmit)="handleSubmit()" novalidate>
+      <div class="field">
+        <label class="field__label" for="gameName">Game name</label>
+        <input class="field__control" type="text" id="gameName" formControlName="gameName"
+          placeholder="e.g. Hollow Knight" autocomplete="off"
+          [attr.aria-invalid]="newGame.get('gameName')?.invalid && newGame.get('gameName')?.touched"
+          aria-describedby="gameName-error" />
+        @if (newGame.get('gameName')?.invalid && newGame.get('gameName')?.touched) {
+          <span class="field__error" id="gameName-error">Enter the game's name.</span>
+        }
+      </div>
+
+      <div class="editor__row">
+        <div class="field">
+          <label class="field__label" for="category">Genre</label>
+          <select class="field__control" id="category" formControlName="category" aria-describedby="category-error">
+            <option value="" disabled>Choose a genre</option>
+            @for (cat of categories; track cat) {
+              <option [value]="cat">{{ cat }}</option>
+            }
+          </select>
+          @if (newGame.get('category')?.invalid && newGame.get('category')?.touched) {
+            <span class="field__error" id="category-error">Choose a genre.</span>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="releaseDate">Release date</label>
+          <input class="field__control" type="date" id="releaseDate" formControlName="releaseDate"
+            aria-describedby="releaseDate-error" />
+          @if (newGame.get('releaseDate')?.invalid && newGame.get('releaseDate')?.touched) {
+            <span class="field__error" id="releaseDate-error">Enter the release date.</span>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="price">Price</label>
+          <div class="editor__price">
+            <span class="editor__currency" aria-hidden="true">€</span>
+            <input class="field__control" type="number" id="price" formControlName="price"
+              placeholder="19.99" min="1" step="0.01" inputmode="decimal" aria-describedby="price-error" />
+          </div>
+          @if (newGame.get('price')?.invalid && newGame.get('price')?.touched) {
+            <span class="field__error" id="price-error">Enter a price of at least €1.00.</span>
+          }
+        </div>
+      </div>
+
+      <fieldset class="editor__cover">
+        <legend class="field__label">Cover image</legend>
+        <div class="field">
+          <label class="field__hint" for="imgUrl">Paste an image URL (portrait art works best)</label>
+          <input class="field__control" type="url" id="imgUrl" formControlName="img"
+            placeholder="https://example.com/cover.jpg" autocomplete="off" aria-describedby="img-error" />
+        </div>
+        <div class="field">
+          <label class="field__hint" for="img">or upload a file</label>
+          <div class="editor__file">
+            <input #fileInput class="field__control" type="file" id="img" accept="image/*" (change)="saveImage($event)" />
+            @if (fileName) {
+              <button type="button" class="btn btn--ghost btn--sm" (click)="clearFile(fileInput)">Remove file</button>
+            }
+          </div>
+        </div>
+        @if (imageMissing) {
+          <span class="field__error" id="img-error">Add a cover: paste an image URL or upload a file.</span>
+        }
+      </fieldset>
+
+      <div class="field">
+        <label class="field__label" for="description">Description</label>
+        <textarea class="field__control" id="description" formControlName="description" rows="4"
+          placeholder="What is it, and why play it? Two or three sentences."></textarea>
+      </div>
+
+      <div class="editor__submit">
+        <button class="btn btn--primary btn--lg" type="submit" [disabled]="isSubmitting"
+          [attr.aria-busy]="isSubmitting">
+          @if (isSubmitting) {
+            {{ isUpdate ? 'Saving...' : 'Publishing...' }}
+          } @else {
+            {{ isUpdate ? 'Save changes' : 'Publish listing' }}
+          }
+        </button>
+        <a class="btn btn--ghost btn--lg" routerLink="/games">Cancel</a>
+      </div>
+
+      <div aria-live="polite">
+        @if (isSuccess) {
+          <p class="notice notice--success">{{ isUpdate ? 'Changes saved. Opening the game page...' : 'Listing published. Opening the game page...' }}</p>
+        }
+        @if (isError) {
+          <p class="notice notice--error" role="alert">
+            {{ isUpdate ? "Changes weren't saved." : "The listing wasn't published." }} Check the fields and try again.
+          </p>
+        }
+      </div>
+    </form>
+
+    <aside class="editor__preview" aria-label="Store preview">
+      <p class="editor__preview-label">Store preview</p>
+      <div class="cover">
+        @if (previewSrc && !previewFailed) {
+          <img [src]="previewSrc" alt="Cover preview" (error)="onPreviewError()">
+        } @else {
+          <div class="editor__placeholder">
+            <app-icon name="image" />
+            <span>{{ previewFailed ? "That URL didn't load as an image." : 'Your cover appears here' }}</span>
+          </div>
+        }
+      </div>
+      <div class="cover-caption">
+        <span class="cover-caption__name">{{ value.gameName || 'Game name' }}</span>
+        <span class="editor__preview-meta">
+          <span class="genre">{{ value.category || 'Genre' }}</span>
+          <app-price [value]="value.price" />
+        </span>
+      </div>
+    </aside>
   </div>
-  <div class="form-group">
-    <label for="Release date">Release date:</label>
-    <input type="text" formControlName="releaseDate">
-  </div>
-  <div class="form-group">
-    <label for="category">Category:</label>
-    <select formControlName="category">
-      <option value="MOBA">MOBA</option>
-      <option value="RPG">RPG</option>
-      <option value="MMO">MMO</option>
-      <option value="FPS">FPS</option>
-      <option value="Action">Action</option>
-    </select>
-  </div>
-  <div class="form-group">
-    <label for="price">Price:</label>
-    <input type="number" formControlName="price">
-  </div>
-  <div class="form-group">
-    <label for="img">Upload image</label>
-    <input type="file" formControlName="img" (change)="saveImage($event)">
-  </div>
-  <div class="form-group">
-    <label for="Description">Description:</label>
-    <input type="text" formControlName="description">
-  </div>
-  <button type="submit" *ngIf="!isUpdate">Create</button>
-  <button type="submit" *ngIf="isUpdate">Save</button>
-  <p *ngIf="isSuccess">You have successfully {{isUpdate ? 'updated' : 'created'}} the game!</p>
-  <div class="error" *ngIf="isError">{{isUpdate ? 'Error during game update' : 'Error during game creation'}}</div>
-</form>
+</div>

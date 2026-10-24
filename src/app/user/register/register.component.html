@@ -1,25 +1,85 @@
-<img class="background" alt="home-background" class="image" src="./../../../assets/backgroun2.jpg">
-<h1 *ngIf="!isUpdate">Register</h1>
-<h1 *ngIf="isUpdate">Edit</h1>
-<form class="register-form" [formGroup]="newUser" (ngSubmit)="handleSubmit()">
-  <div class="form-group">
-    <label for="name">Name:</label>
-    <input type="text" formControlName="name">
-  </div>
-  <div class="form-group">
-    <label for="email">Email:</label>
-    <input type="email" formControlName="email">
-  </div>
-  <div class="form-group" *ngIf="!this.isUpdate">
-    <label for="password">Password:</label>
-    <input type="password" formControlName="password">
-  </div>
-  <div class="form-group">
-    <label for="img">Upload image</label>
-    <input type="file" formControlName="img" (change)="saveImage($event)">
-  </div>
-  <button type="submit" *ngIf="!isUpdate">Register</button>
-  <button type="submit" *ngIf="isUpdate">Save</button>
-  <p *ngIf="isSuccess">You have successfully {{isUpdate ? 'updated your data!' : 'register!'}}</p>
-  <div class="error" *ngIf="isError">{{isUpdate ? 'Error during user update' : 'Error during registration'}}</div>
-</form>
+<div class="auth auth--top">
+  <app-auth-art class="auth__art" />
+
+  <section class="auth__panel">
+    <div>
+      <h1>{{ isUpdate ? 'Edit profile' : 'Create your account' }}</h1>
+      <p class="auth__lede">
+        {{ isUpdate ? 'Update how you appear to other players.' : 'Keep a cart, and list your own games in the store.' }}
+      </p>
+    </div>
+
+    <form class="auth__form" [formGroup]="newUser" (ngSubmit)="handleSubmit()" novalidate>
+      <div class="avatar">
+        <div class="avatar__preview">
+          @if (avatarPreview) {
+            <img [src]="avatarPreview" alt="Your avatar" />
+          } @else {
+            <app-icon name="user" />
+          }
+        </div>
+        <div class="field">
+          <label class="field__label" for="img">Avatar <span class="muted">(optional)</span></label>
+          <input class="field__control" type="file" id="img" accept="image/*" (change)="saveImage($event)" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="name">Name</label>
+        <input class="field__control" type="text" id="name" formControlName="name" autocomplete="name"
+          aria-describedby="name-error" />
+        @if (newUser.get('name')?.invalid && newUser.get('name')?.touched) {
+          <span class="field__error" id="name-error">Enter your name.</span>
+        }
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="email">Email</label>
+        <input class="field__control" type="email" id="email" formControlName="email"
+          placeholder="you@example.com" autocomplete="email" aria-describedby="email-error" />
+        @if (newUser.get('email')?.invalid && newUser.get('email')?.touched) {
+          <span class="field__error" id="email-error">Enter a valid email address.</span>
+        }
+      </div>
+
+      @if (!isUpdate) {
+        <div class="field">
+          <label class="field__label" for="password">Password</label>
+          <input class="field__control" type="password" id="password" formControlName="password"
+            autocomplete="new-password" aria-describedby="password-hint password-error" />
+          <span class="field__hint" id="password-hint">At least 8 characters.</span>
+          @if (newUser.get('password')?.invalid && newUser.get('password')?.touched) {
+            <span class="field__error" id="password-error">Use at least 8 characters.</span>
+          }
+        </div>
+      }
+
+      <button class="btn btn--primary btn--lg btn--block" type="submit" [disabled]="isSubmitting"
+        [attr.aria-busy]="isSubmitting">
+        @if (isSubmitting) {
+          {{ isUpdate ? 'Saving...' : 'Creating account...' }}
+        } @else {
+          {{ isUpdate ? 'Save changes' : 'Create account' }}
+        }
+      </button>
+
+      @if (isSuccess) {
+        <p class="notice notice--success" role="status">
+          {{ isUpdate ? 'Profile saved.' : 'Account created. Sign in to continue.' }}
+        </p>
+      }
+      @if (isError) {
+        <p class="notice notice--error" role="alert">
+          {{ isUpdate ? "Your changes weren't saved." : "The account wasn't created. That email may already be registered." }}
+        </p>
+      }
+    </form>
+
+    @if (!isUpdate) {
+      <p class="auth__switch">
+        Already have an account? <a class="text-link" routerLink="/login">Sign in</a>.
+        Rather not sign up? <a class="text-link" routerLink="/login">Try the demo</a>.
+      </p>
+    }
+  </section>
+</div>

@@ -1,15 +1,57 @@
-<img class="background" alt="home-background" class="image" src="./../../../assets/backgroun2.jpg">
-<h1>Login</h1>
-<form [formGroup]="login" (ngSubmit)="handleSubmit()">
-  <div class="form-group">
-    <label for="email">Email:</label>
-    <input type="email" id="email" formControlName="email" required />
-  </div>
-  <div class="form-group">
-    <label for="password">Password:</label>
-    <input type="password" id="password" formControlName="password" required />
-  </div>
-  <button type="submit">LOGIN</button>
-  <p *ngIf="isSuccess">You have logged successfully!</p>
-  <div class="error" *ngIf="isError">Login failed. Credentials incorrect</div>
-</form>
+<div class="auth auth--top">
+  <app-auth-art class="auth__art" />
+
+  <section class="auth__panel">
+    <div>
+      <h1>Sign in</h1>
+      <p class="auth__lede">Pick up your cart and your listings where you left them.</p>
+    </div>
+
+    <div class="demo">
+      <p class="demo__title">Just looking around?</p>
+      <p class="demo__text">Use the demo account to try the cart and publish a listing. No sign-up needed.</p>
+      <button class="btn btn--primary btn--lg btn--block" type="button"
+        data-testid="demo-login" [disabled]="isSubmitting()" [attr.aria-busy]="isSubmitting() && viaDemo()"
+        (click)="loginAsDemo()">
+        Try the demo
+      </button>
+      <p class="demo__hint">Signs you in as {{ demoEmail }}</p>
+    </div>
+
+    <p class="auth__divider">or sign in with email</p>
+
+    <form class="auth__form" [formGroup]="login" (ngSubmit)="handleSubmit()" novalidate>
+      <div class="field">
+        <label class="field__label" for="email">Email</label>
+        <input class="field__control" type="email" id="email" formControlName="email"
+          placeholder="you@example.com" autocomplete="email" aria-describedby="email-error" />
+        @if (login.controls.email.invalid && login.controls.email.touched) {
+          <span class="field__error" id="email-error">Enter a valid email address.</span>
+        }
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="password">Password</label>
+        <input class="field__control" type="password" id="password" formControlName="password"
+          autocomplete="current-password" aria-describedby="password-error" />
+        @if (login.controls.password.invalid && login.controls.password.touched) {
+          <span class="field__error" id="password-error">Enter your password.</span>
+        }
+      </div>
+
+      <button class="btn btn--light btn--lg btn--block" type="submit" [disabled]="isSubmitting()"
+        [attr.aria-busy]="isSubmitting() && !viaDemo()">
+        {{ isSubmitting() ? 'Signing in...' : 'Sign in' }}
+      </button>
+
+      @if (isSuccess()) {
+        <p class="notice notice--success" role="status">Signed in. Taking you back...</p>
+      }
+      @if (isError()) {
+        <p class="notice notice--error" role="alert">That email and password don't match an account. Check them, or try the demo.</p>
+      }
+    </form>
+
+    <p class="auth__switch">New here? <a class="text-link" routerLink="/register">Create an account</a></p>
+  </section>
+</div>

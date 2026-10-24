@@ -1,75 +1,31 @@
-.image {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vh;
-  height: 100%;
-  object-fit: cover;
-  z-index: -1;
-}
-h1 {
-  font-size: 3rem;
-  margin-bottom: 2rem;
-  color: white;
-  text-align: center;
+:host {
+  display: block;
 }
 
-form {
+.demo {
   display: flex;
   flex-direction: column;
-  width: 50%;
-  margin: 0 auto;
-  color: white;
-
-  .form-group {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 20px;
-
-    label {
-      font-weight: bold;
-      margin-bottom: 5px;
-    }
-
-    input {
-      padding: 10px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-  }
-
-  button[type="submit"] {
-    padding: 10px;
-    background-color: #007bff;
-    color: #fff;
-    font-size: 16px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-
-    &:hover {
-      background-color: #0062cc;
-    }
-  }
-
-  .error {
-    padding-top: 20px;
-    color: red;
-    font-size: 20px;
-  }
+  gap: var(--space-2);
+  padding: var(--space-5);
+  border: 1px solid rgb(255 79 139 / 35%);
+  border-radius: var(--radius-sheet);
+  background: linear-gradient(160deg, rgb(255 79 139 / 12%), transparent 60%), var(--night);
 }
 
-.text {
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: #ffffff;
-  font-size: 19px;
+.demo__title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-xl);
+  line-height: 1;
+}
 
-  span {
-    color: #00bfff;
-    cursor: pointer;
-  }
+.demo__text {
+  margin-bottom: var(--space-2);
+  color: var(--haze);
+}
+
+.demo__hint {
+  color: var(--haze);
+  font-size: var(--text-xs);
+  text-align: center;
 }

@@ -1,48 +1,55 @@
-# ![Logo](./src/assets/WOG-logo1.png)
+# World of Games — Frontend
 
-## World Of Games Frontend
+[![CI](https://github.com/fabiodinoia/World-Of-Games-Front/actions/workflows/ci.yml/badge.svg)](https://github.com/fabiodinoia/World-Of-Games-Front/actions/workflows/ci.yml)
 
-This is the frontend of the World Of Games application. It was built with Angular and TypeScript.
+![World of Games logo](./src/assets/WOG-logo1.png)
 
-Getting Started
-To get started with the frontend, you'll need to have Node.js installed on your machine. You can download it from the official website: <https://nodejs.org/en/download/>.
+Angular 21 storefront for **World of Games**, a marketplace to browse, publish and
+collect video games. Standalone components, the built-in control flow
+(`@if` / `@for`), and signals. It talks to the World of Games REST API.
 
-Once you have Node.js installed, you can run the following commands to get started:
+Browsing the catalogue and game pages works without an account. Cart, profile
+and publishing games require signing in. Use **Try the demo** on the login page
+for one-click access.
 
-bash
-Copy code
+## Requirements
 
-## Install dependencies
+- Node.js **22.18+** (see `.nvmrc`; `nvm use`)
+- A running World of Games API (defaults to `http://localhost:4800`)
 
+## Getting started
+
+```bash
 npm install
+cp .env.example .env   # optional: adjust API_URL / Firebase values
+npm start              # http://localhost:4200
+```
 
-## Start the development server
+## Configuration
 
-npm start
-This will start the development server at <http://localhost:4200/>. You can open this URL in your web browser to view the application.
+`src/environments/environment.ts` is **generated** (and git-ignored) by
+`src/environments/set-env.mts`. It runs automatically before `start`, `build`,
+`watch` and `test`, or on its own with `npm run config`. Values come from
+environment variables or a local `.env` file:
 
-Building the Application
-To build the application for production, you can run the following command:
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `API_URL` | `http://localhost:4800` | Base URL of the API |
+| `NODE_ENV` | `development` | `production` sets `environment.production` |
+| `FIREBASE_*` | empty | Firebase web config, only needed for image uploads |
 
-## npm run build
+Without Firebase config the app still works: image uploads are disabled and a
+game cover can be given as an image URL instead.
 
-This will create a dist directory with the compiled application code. You can deploy this directory to a web server to host the application.
+## Scripts
 
-## Code Structure
+| Command | Description |
+| --- | --- |
+| `npm start` | Dev server on port 4200 |
+| `npm run build` | Production build to `dist/world-of-games-front/` |
+| `npm test` | Unit tests (Karma + Jasmine, watch mode) |
+| `npm run test:ci` | Single headless run with coverage (`coverage/lcov.info`) |
 
-The code for the frontend is located in the src directory. Here's an overview of the directory structure:
+## Demo account
 
-app: Contains the main application components and modules.
-assets: Contains static assets such as images and stylesheets.
-environments: Contains environment-specific configuration files.
-index.html: The main HTML file for the application.
-main.ts: The entry point for the application.
-styles.scss: The main stylesheet for the application.
-Contributing
-If you'd like to contribute to the frontend of the World Of Games application, you can fork the repository and submit a pull request with your changes.
-
-Before submitting a pull request, please make sure that your changes are thoroughly tested and documented.
-
-## Testing
-
-The application is 100% fully tested with jasmine with unitary tests
+`demo@worldofgames.dev` / `DemoPass123!` (seeded by the API).

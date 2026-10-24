@@ -1,67 +1,260 @@
-.image {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+:host {
+  display: block;
+}
+
+/* ── Spotlight hero ── */
+.hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-bottom: 1px solid rgb(255 255 255 / 5%);
+}
+
+.hero__backdrop {
+  position: absolute;
+  inset: -10%;
+  z-index: -2;
+  width: 120%;
+  height: 120%;
   object-fit: cover;
+  filter: blur(48px) saturate(130%);
+  opacity: 0.55;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
   z-index: -1;
+  background: linear-gradient(90deg, var(--ink) 8%, rgb(19 16 42 / 70%) 55%, rgb(19 16 42 / 35%)),
+    linear-gradient(0deg, var(--ink), transparent 40%);
 }
 
-.button {
-  position: absolute;
-  top: 120%;
-  left: 88%;
-  transform: translate(-50%, -50%);
-  background-color: #54adff;
-  opacity: 0.8;
-  color: #ffffff;
-  border: none;
-  padding: 30px 60px;
-  border-radius: 15px;
-  font-size: 24px;
+.hero__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 340px);
+  align-items: center;
+  gap: clamp(1.5rem, 5vw, 4.5rem);
+  padding-block: clamp(2.5rem, 7vw, 5.5rem);
 }
 
-.text {
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: #ffffff;
-  font-size: 22px;
+.hero__copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
 
-  span {
-    color: #00bfff;
-    cursor: pointer;
+.hero__kicker {
+  color: var(--volt);
+  font-weight: 700;
+  font-size: var(--text-sm);
+}
+
+.hero__title {
+  font-size: var(--text-4xl);
+  font-weight: 900;
+  line-height: 0.88;
+  max-width: 12ch;
+}
+
+.hero__meta {
+  color: var(--haze);
+  font-weight: 600;
+}
+
+.hero__desc {
+  max-width: 52ch;
+  font-size: var(--text-lg);
+  line-height: 1.5;
+  color: #d9d4f2;
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+
+  app-price {
+    margin-right: var(--space-3);
   }
 }
 
-.title {
+.hero__cover .cover {
+  box-shadow: var(--shadow-sheet);
+}
+
+.hero--loading .hero__copy {
+  gap: var(--space-5);
+}
+
+.hero--empty .hero__inner {
+  grid-template-columns: 1fr;
+}
+
+/* ── Blocks ── */
+.block {
+  padding-top: clamp(2.5rem, 6vw, 4rem);
+}
+
+.block__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+/* ── Featured ── */
+.featured {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(1rem, 2.5vw, 2rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.featured-card .cover {
+  position: relative;
+}
+
+.featured-card__price {
   position: absolute;
-  top: 60%;
-  left: 5%;
-  transform: translate(-50%, -50%);
-  color: #ffffff;
-  font-size: 50px;
-  width: 130%; /* adjust the width as needed */
+  right: 0;
+  bottom: var(--space-4);
 }
 
-.title {
-  animation: bounce 2s infinite;
+/* ── Genre index ── */
+.genres {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-@keyframes bounce {
-  0%,
-  20%,
-  50%,
-  80%,
-  100% {
-    transform: translateY(0);
+.genre-tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  text-decoration: none;
+  transition: border-color var(--dur-fast), background-color var(--dur-fast);
+
+  &:hover {
+    border-color: var(--volt);
+    background: var(--night);
   }
-  40% {
-    transform: translateY(-10px);
+}
+
+.genre-tile__name {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-xl);
+  line-height: 1;
+}
+
+.genre-tile__count {
+  color: var(--haze);
+  font-size: var(--text-sm);
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .featured {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  60% {
-    transform: translateY(-5px);
+}
+
+@media (max-width: 640px) {
+  .hero__inner {
+    grid-template-columns: 1fr;
+  }
+
+  .hero__cover {
+    order: -1;
+    width: min(56%, 220px);
+  }
+
+  .hero__actions {
+    width: 100%;
+
+    .btn {
+      flex: 1 1 auto;
+    }
+
+    app-price {
+      flex-basis: 100%;
+    }
+  }
+}
+
+/* ── Motion ──
+   Spotlight copy staggers in fast (≤500ms total) from an already-painted
+   state (opacity starts above zero), the cover settles from a slight zoom,
+   and the blurred backdrop drifts very slowly. Nothing waits to be painted. */
+@media (prefers-reduced-motion: no-preference) {
+  .hero:not(.hero--loading) .hero__copy > * {
+    animation: hero-rise 300ms var(--ease-out) backwards;
+
+    @for $i from 2 through 5 {
+      &:nth-child(#{$i}) {
+        animation-delay: #{($i - 1) * 45}ms;
+      }
+    }
+  }
+
+  .hero:not(.hero--loading) .hero__cover .cover {
+    animation: hero-cover-settle 480ms var(--ease-out) backwards;
+  }
+
+  .hero__backdrop {
+    animation: hero-drift 32s var(--ease-in-out) infinite alternate;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero:not(.hero--loading) .hero__copy > * {
+    animation: hero-fade 240ms ease-out backwards;
+  }
+}
+
+/* Don't spend frames on a tab nobody is looking at */
+:host-context(html[data-tab-hidden]) .hero__backdrop {
+  animation-play-state: paused;
+}
+
+@keyframes hero-rise {
+  from {
+    opacity: 0.01;
+    transform: translate3d(0, 14px, 0);
+  }
+}
+
+@keyframes hero-fade {
+  from {
+    opacity: 0.01;
+  }
+}
+
+@keyframes hero-cover-settle {
+  from {
+    transform: scale(1.04) rotate(0.6deg);
+  }
+}
+
+@keyframes hero-drift {
+  from {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.08) translate3d(-2%, 1.5%, 0);
   }
 }

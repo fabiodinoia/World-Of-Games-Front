@@ -1,0 +1,101 @@
+/* Hero: wordmark + CTAs on the left, the spinning globe on the right. No
+   overflow clip here: pin label cards extend right/up past the globe box
+   (body already clips horizontal overflow at the viewport). */
+.landing {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-6);
+  min-height: calc(100dvh - var(--header-h));
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding: var(--space-7) var(--gutter);
+}
+
+.landing__panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.landing__kicker {
+  color: var(--mint);
+  font-weight: 700;
+  font-size: var(--text-sm);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.landing__title {
+  margin: var(--space-3) 0 0;
+  font-size: clamp(4rem, 13vw, 10rem);
+  font-weight: 900;
+  line-height: 0.85;
+  color: var(--paper);
+  max-width: 9ch;
+}
+
+/* Same volt outline as the 404 code, so the two type moments rhyme. */
+.landing__outline {
+  display: block;
+  color: transparent;
+  -webkit-text-stroke: 2px var(--volt);
+}
+
+.landing__tag {
+  color: var(--haze);
+  font-size: var(--text-lg);
+  max-width: 40ch;
+  margin: var(--space-5) 0 var(--space-6);
+}
+
+.landing__actions {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.landing__error {
+  color: var(--alert);
+  margin-top: var(--space-3);
+}
+
+/* Square box shared by the three-host (poster/canvas) and the pin overlay, so
+   projected points (canvas CSS px) land on the same pixels. */
+.landing__globe {
+  position: relative;
+  justify-self: end;
+  width: 100%;
+  max-width: 640px;
+  aspect-ratio: 1;
+  touch-action: pan-y; /* vertical swipes keep scrolling the page */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.landing__globe--live {
+  cursor: grab;
+}
+
+.landing__globe--dragging {
+  cursor: grabbing;
+}
+
+.landing__globe-host {
+  position: absolute;
+  inset: 0;
+}
+
+/* Phones/tablets: one column, a smaller full globe. */
+@media (max-width: 860px) {
+  .landing {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .landing__globe {
+    justify-self: center;
+    max-width: min(88vw, 420px);
+  }
+}

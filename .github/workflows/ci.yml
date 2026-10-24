@@ -1,0 +1,27 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: Test & build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # Generates src/environments/environment.ts from defaults (no secrets).
+      - run: npm run config
+      - name: Unit tests with coverage
+        run: npx ng test --watch=false --browsers=ChromeHeadlessNoSandbox --code-coverage
+      - name: Coverage summary
+        if: always()
+        run: |
+          echo '### Coverage' >> "$GITHUB_STEP_SUMMARY"
+          node -e "const t=require('./coverage/coverage-summary.json').total;for(const k of ['statements','branches','functions','lines'])console.log('- '+k+': '+t[k].pct+'%')" >> "$GITHUB_STEP_SUMMARY"
+      - run: npm run build

@@ -1,29 +1,71 @@
-<img alt="home-background" class="image" src="./../../../assets/background3.png">
+<div class="page">
+  <header class="page-head">
+    <div>
+      <h1>{{ heading() }}</h1>
+      <p class="page-head__lede" aria-live="polite">
+        @if (isLoading()) { Loading the catalogue... } @else { {{ resultLabel() }} }
+      </p>
+    </div>
+  </header>
 
-<div class="game-category">
-  <label id="labelt" for="category-select">Filter by category:</label>
-  <select id="category-select" [(ngModel)]="selectedCategory" (ngModelChange)="onCategorySelect()">
-    <option value="">All</option>
-    <option value="MOBA">MOBA</option>
-    <option value="RPG">RPG</option>
-    <option value="MMO">MMO</option>
-    <option value="FPS">FPS</option>
-    <option value="Action">Action</option>
-  </select>
+  <div class="filters" role="group" aria-label="Filter by genre">
+    @for (cat of categories; track cat.value) {
+      <button type="button" class="chip" [class.chip--active]="selectedCategory() === cat.value"
+        [attr.aria-pressed]="selectedCategory() === cat.value" (click)="selectCategory(cat.value)">
+        {{ cat.label }}
+      </button>
+    }
+  </div>
+
+  @if (isLoading()) {
+    <ul class="grid" aria-hidden="true">
+      @for (i of skeletons; track i) {
+        <li class="game-card--skeleton">
+          <div class="cover skeleton"></div>
+          <div class="skeleton" style="height: 1rem; width: 75%; margin-top: 0.75rem"></div>
+          <div class="skeleton" style="height: 0.8rem; width: 40%; margin-top: 0.5rem"></div>
+        </li>
+      }
+    </ul>
+  } @else {
+    @if (games().length) {
+      <ul class="grid">
+        @for (game of games(); track game.id; let i = $index) {
+          <li class="game-card" [appReveal]="'catalog:' + game.id">
+            <a class="cover-link" [routerLink]="['/games', game.id]" appCoverMorph>
+              <div class="cover">
+                <img [src]="game.img" [alt]="'Cover art for ' + game.gameName" width="300" height="400"
+                  [attr.loading]="i < 5 ? 'eager' : 'lazy'" [attr.fetchpriority]="i === 0 ? 'high' : null">
+              </div>
+              <div class="cover-caption">
+                <span class="cover-caption__name">{{ game.gameName }}</span>
+                <span class="game-card__meta">
+                  <span class="genre">{{ game.category }}</span>
+                  <app-price [value]="game.price" />
+                </span>
+              </div>
+            </a>
+            <button type="button" class="game-card__add btn btn--primary btn--icon"
+              (click)="addCart(game, $event)" [attr.aria-label]="'Add ' + game.gameName + ' to cart'">
+              <app-icon name="cart-add" />
+            </button>
+          </li>
+        }
+      </ul>
+    } @else {
+      <div class="empty">
+        <h2>No games found</h2>
+        @if (loadFailed()) {
+          <p>The catalogue didn't load. Check that you're online, then try again.</p>
+          <button class="btn btn--light" type="button" (click)="loadGames()">Try again</button>
+        } @else {
+          <p>Nothing is listed under {{ selectedCategory() }} right now. Browse everything, or list a game in this genre yourself.</p>
+          <div class="empty__actions">
+            <button class="btn btn--light" type="button" (click)="selectCategory('all')">Show all games</button>
+            <a class="btn btn--outline" routerLink="/games/create">Sell a game</a>
+          </div>
+        }
+      </div>
+    }
+  }
 </div>
-
-<ul>
-  <li *ngFor="let game of games">
-    <a [routerLink]="game.id">
-      <div class="game-card">
-        <img class="game-img" [src]="game.img" alt="{{game.gameName}}">
-      </div>
-      <div class="game-info">
-        <p class="game-name">{{ game.gameName }}</p>
-        <p class="game-category">{{ game.category }}</p>
-        <p class="game-price">{{ game.price }}€</p>
-      </div>
-    </a>
-    <mat-icon (click)="addCart(game)">shopping_cart</mat-icon>
-  </li>
-</ul>

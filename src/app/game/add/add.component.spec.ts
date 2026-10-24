@@ -1,168 +1,184 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
 import {
   ComponentFixture,
-  fakeAsync,
   TestBed,
+  fakeAsync,
   tick,
 } from '@angular/core/testing';
-import { provideFirebaseApp } from '@angular/fire/app';
-import { provideStorage } from '@angular/fire/storage';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { RouterTestingModule } from '@angular/router/testing';
-import { initializeApp } from 'firebase/app';
-import { getStorage, ref, StorageReference } from 'firebase/storage';
+import { Router, provideRouter } from '@angular/router';
+import { ReactiveFormsModule } from '@angular/forms';
+import { ImageUploadService } from 'src/app/services/image/image-upload.service';
 import { of, throwError } from 'rxjs';
-import { RepoGameService } from 'src/app/services/game/game.services.service';
-import { Game } from 'src/app/types/types';
-import { UserDetailComponent } from 'src/app/user/detail/detail.component';
-import { mockEvent, mockGameService, mockGametoUp } from 'src/app/utils/mocks';
-import { environment } from 'src/environments/environment';
 import { AddComponent } from './add.component';
+import { RepoGameService } from 'src/app/services/game/game.services.service';
+import { RepoUserService } from 'src/app/services/user/user.service';
+import {
+  createGameServiceMock,
+  createUserServiceMock,
+  mockGame,
+  mockLogged,
+} from 'src/app/utils/mocks';
 
 describe('AddComponent', () => {
-  let component: AddComponent;
   let fixture: ComponentFixture<AddComponent>;
-  let srv: RepoGameService;
+  let component: AddComponent;
+  let gameSrv: ReturnType<typeof createGameServiceMock>;
+  let router: Router;
 
-  beforeEach(async () => {
+  const validGame = {
+    gameName: 'Zelda',
+    releaseDate: '2023-05-12',
+    category: 'RPG',
+    price: 59,
+    description: 'Adventure',
+  };
+
+  let images: jasmine.SpyObj<ImageUploadService>;
+
+  const setup = async (gameToEdit = {}) => {
+    gameSrv = createGameServiceMock();
+    images = jasmine.createSpyObj<ImageUploadService>('images', ['upload']);
+    images.upload.and.resolveTo('https://cdn/cover.png');
+    gameSrv.gameInfo$.next(gameToEdit as never);
     await TestBed.configureTestingModule({
-      declarations: [AddComponent],
-      imports: [
-        HttpClientTestingModule,
-        ReactiveFormsModule,
-        FormsModule,
-        RouterTestingModule.withRoutes([
-          { path: 'user/:id', component: UserDetailComponent },
-        ]),
-        provideFirebaseApp(() => initializeApp(environment.firebase)),
-        provideStorage(() => getStorage()),
-      ],
+      imports: [ReactiveFormsModule, AddComponent],
       providers: [
-        {
-          provide: RepoGameService,
-          useValue: mockGameService,
-        },
+        provideRouter([]),
+        { provide: RepoGameService, useValue: gameSrv },
+        { provide: RepoUserService, useValue: createUserServiceMock() },
+        { provide: ImageUploadService, useValue: images },
       ],
     }).compileComponents();
-  });
-  beforeEach(() => {
     fixture = TestBed.createComponent(AddComponent);
     component = fixture.componentInstance;
-    srv = TestBed.inject(RepoGameService);
-    component.gameToUpdate = {} as unknown as Game;
+    router = TestBed.inject(Router);
+    spyOn(router, 'navigate').and.resolveTo(true);
     fixture.detectChanges();
+  };
+
+  it('starts in create mode with an invalid form', async () => {
+    await setup();
+    expect(component.isUpdate).toBeFalse();
+    expect(component.newGame.invalid).toBeTrue();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('does not submit an invalid form', async () => {
+    await setup();
+    await component.handleSubmit();
+    expect(gameSrv.createGame).not.toHaveBeenCalled();
+    expect(component.newGame.touched).toBeTrue();
   });
 
-  describe('(UPDATE)When we have a game to update', () => {
-    it('Should call the RepoGameService service and next', fakeAsync(() => {
-      const checkGame = spyOn(srv, 'updateGame').and.returnValue(
-        of(mockGametoUp)
-      );
-      const checkZoneRun = spyOn(component.zone, 'run').and.callThrough();
-      srv.gameInfo$.next(mockGametoUp);
-      component.saveImage(mockEvent);
-      const checkUpload = spyOn(component, 'uploadImage').and.resolveTo();
-      const checkGetImage = spyOn(component, 'getImage').and.resolveTo('mock');
-      component.ngOnInit();
-      component.handleSubmit();
-      tick(2000);
-      expect(checkUpload).toHaveBeenCalled();
-      expect(checkGetImage).toHaveBeenCalled();
+  it('requires a cover image (file or URL) to create', fakeAsync(() => {
+    setup();
+    tick();
+    component.newGame.setValue({ ...validGame, img: '  ' });
+    component.handleSubmit();
+    tick();
+    expect(component.imageMissing).toBeTrue();
+    expect(gameSrv.createGame).not.toHaveBeenCalled();
+  }));
 
-      expect(checkGame).toHaveBeenCalled();
-      expect(checkZoneRun).toHaveBeenCalled();
-      expect(component.isSuccess).toBeFalse();
-      expect(component.isError).toBeFalse();
-      expect(component.router.url).toBe('/user/:id');
-    }));
-  });
-  describe('(CREATE)Given the handleSubmit method', () => {
-    describe('When called with correct data to create a game', () => {
-      it('Should call the RepoGameService service and next', fakeAsync(() => {
-        const controlGame = spyOn(srv, 'createGame').and.returnValue(
-          of(mockGametoUp)
-        );
-        const controlZoneRun = spyOn(component.zone, 'run').and.callThrough();
-        srv.gameInfo$.next({} as unknown as Game);
-        component.gameToUpdate = {} as any;
-        component.saveImage(mockEvent);
-        const controlUpload = spyOn(component, 'uploadImage').and.resolveTo();
-        const controlGetImage = spyOn(component, 'getImage').and.resolveTo('mock');
-        component.handleSubmit();
-        tick(2000);
-        expect(controlUpload).toHaveBeenCalled();
-        expect(controlGetImage).toHaveBeenCalled();
-        expect(controlGame).toHaveBeenCalled();
-        expect(controlZoneRun).toHaveBeenCalled();
-        expect(component.isSuccess).toBeFalse();
-        expect(component.isError).toBeFalse();
-        expect(component.router.url).toBe('/user/:id');
-      }));
-    });
+  it('creates a game from a pasted image URL and opens its page', fakeAsync(() => {
+    setup();
+    tick();
+    component.newGame.setValue({ ...validGame, img: 'https://img/x.png' });
+    component.handleSubmit();
+    tick();
+    expect(gameSrv.createGame).toHaveBeenCalledWith(
+      jasmine.objectContaining({ gameName: 'Zelda', img: 'https://img/x.png' }),
+    );
+    expect(component.isSuccess).toBeTrue();
+    tick(1500);
+    expect(router.navigate).toHaveBeenCalledWith(['/games', mockGame.id]);
+  }));
 
-    describe('(ERROR)When the createGame method returns an error', () => {
-      it('Should display error message', fakeAsync(() => {
-        spyOn(srv, 'createGame').and.returnValue(throwError(() => 'error'));
+  it('falls back to the profile when the API returns no id', fakeAsync(() => {
+    setup();
+    tick();
+    gameSrv.createGame.and.returnValue(of({ ...mockGame, id: undefined }));
+    component.newGame.setValue({ ...validGame, img: 'https://img/x.png' });
+    component.handleSubmit();
+    tick(1500);
+    expect(router.navigate).toHaveBeenCalledWith([`/user/${mockLogged.id}`]);
+  }));
 
-        srv.gameInfo$.next(null as unknown as Game);
-        component.gameToUpdate = null as any;
-        component.saveImage(mockEvent);
-        const loadSpy = spyOn(component, 'uploadImage').and.resolveTo();
-        const imageGet = spyOn(component, 'getImage').and.resolveTo('mock');
+  it('previews the pasted URL and flags one that fails to load', fakeAsync(() => {
+    setup();
+    tick();
+    component.newGame.patchValue({ img: 'https://img/x.png' });
+    expect(component.previewSrc).toBe('https://img/x.png');
+    component.onPreviewError();
+    expect(component.previewFailed).toBeTrue();
+    component.newGame.patchValue({ img: 'https://img/y.png' });
+    expect(component.previewFailed).toBeFalse();
+  }));
 
-        component.handleSubmit();
-        tick(3000);
+  it('switches to update mode when a game is being edited', fakeAsync(() => {
+    setup(mockGame);
+    tick();
+    expect(component.isUpdate).toBeTrue();
+    expect(component.newGame.value.gameName).toBe(mockGame.gameName);
+    component.handleSubmit();
+    tick(1500);
+    expect(gameSrv.updateGame).toHaveBeenCalledWith(
+      mockGame.id as string,
+      jasmine.any(Object),
+    );
+    expect(router.navigate).toHaveBeenCalledWith(['/games', mockGame.id]);
+  }));
 
-        expect(loadSpy).toHaveBeenCalled();
-        expect(imageGet).toHaveBeenCalled();
-        expect(component.isSuccess).toBeFalse();
-        expect(component.isError).toBeFalse();
-      }));
-    });
+  it('shows then clears the error state on failure', fakeAsync(() => {
+    setup();
+    tick();
+    gameSrv.createGame.and.returnValue(throwError(() => new Error('x')));
+    component.newGame.setValue({ ...validGame, img: 'https://img/x.png' });
+    component.handleSubmit();
+    tick();
+    expect(component.isError).toBeTrue();
+    tick(3000);
+    expect(component.isError).toBeFalse();
+  }));
 
-    describe('When the getImage method is called', () => {
-      it('then it should return the string', () => {
-        const mockStorage = {} as StorageReference;
-        const checkGet = spyOn(component, 'getImage').and.callFake(() => {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          return new Promise((_resolve, _reject) => {
-            return '';
-          });
-        });
-        component.getImage(mockStorage);
-        expect(checkGet).toHaveBeenCalled();
-      });
-    });
+  it('uploads the cover image before creating the game', fakeAsync(() => {
+    setup();
+    tick();
+    const file = new File(['x'], 'cover.png', { type: 'image/png' });
+    component.saveImage({ target: { files: [file] } } as unknown as Event);
+    component.newGame.setValue({ ...validGame, img: '' });
+    component.handleSubmit();
+    tick();
+    expect(images.upload).toHaveBeenCalledWith('games/Zelda', file);
+    expect(gameSrv.createGame).toHaveBeenCalledWith(
+      jasmine.objectContaining({ img: 'https://cdn/cover.png' }),
+    );
+    tick(1500);
+  }));
 
-    describe('When the uploadImage method is called', () => {
-      it('Then it should uploadBytes', async () => {
-        const refTest = ref(component['storage'], 'testing');
-        const file = new File(['test'], 'test.png', { type: 'image/png' });
+  it('shows the error state when the upload fails', fakeAsync(() => {
+    setup();
+    tick();
+    images.upload.and.rejectWith(new Error('no firebase'));
+    const file = new File(['x'], 'cover.png', { type: 'image/png' });
+    component.saveImage({ target: { files: [file] } } as unknown as Event);
+    component.newGame.setValue({ ...validGame, img: '' });
+    component.handleSubmit();
+    tick();
+    expect(component.isError).toBeTrue();
+    expect(component.isSubmitting).toBeFalse();
+    expect(gameSrv.createGame).not.toHaveBeenCalled();
+    tick(3000);
+  }));
 
-        spyOn(component, 'uploadImage').and.callThrough();
-
-        await component.uploadImage(refTest, file);
-
-        const downloadUrl = await component.getImage(refTest);
-
-        expect(component.uploadImage).toHaveBeenCalled();
-        expect(downloadUrl).toBeTruthy();
-      });
-    });
-    describe('submitButtonLabel', () => {
-      it('should return "Create" when gameToUpdate is falsy', () => {
-        component.gameToUpdate = null as unknown as Game;
-        expect(component.submitButtonLabel).toEqual('Create');
-      });
-
-      it('should return "Save" when gameToUpdate is truthy', () => {
-        component.gameToUpdate = { id: '1', gameName: 'Test Game' } as Game;
-        expect(component.submitButtonLabel).toEqual('Save');
-      });
-    });
-  });
+  it('keeps the existing cover when editing without a new image', fakeAsync(() => {
+    setup({ ...mockGame, img: 'https://cdn/old.png' });
+    tick();
+    expect(component.newGame.value.img).toBe('https://cdn/old.png');
+    component.newGame.patchValue({ img: '' });
+    component.handleSubmit();
+    tick(1500);
+    expect(gameSrv.updateGame).toHaveBeenCalledWith(
+      mockGame.id as string,
+      jasmine.objectContaining({ img: 'https://cdn/old.png' }),
+    );
+  }));
 });
